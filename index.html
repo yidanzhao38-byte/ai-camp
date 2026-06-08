@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI训练营 · 互助看板</title>
+<style>
+/* ========== CSS 变量 & 全局 ========== */
+:root {
+  --primary: #4f46e5;
+  --primary-light: #818cf8;
+  --primary-bg: #eef2ff;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --gray-50: #f9fafb;
+  --gray-100: #f3f4f6;
+  --gray-200: #e5e7eb;
+  --gray-300: #d1d5db;
+  --gray-500: #6b7280;
+  --gray-700: #374151;
+  --gray-900: #111827;
+  --radius: 12px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.1);
+  --shadow-lg: 0 10px 25px rgba(0,0,0,0.1);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: var(--gray-50); color: var(--gray-900); }
+
+/* ========== 布局 ========== */
+.header { background: linear-gradient(135deg, var(--primary), #7c3aed); color: white; padding: 20px 32px; display: flex; align-items: center; justify-content: space-between; }
+.header h1 { font-size: 22px; font-weight: 700; }
+.header .subtitle { font-size: 13px; opacity: 0.85; margin-top: 2px; }
+.user-bar { display: flex; align-items: center; gap: 12px; font-size: 14px; }
+.user-bar .avatar { width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.25); display: flex; align-items: center; justify-content: center; font-weight: 700; }
+
+.container { max-width: 1100px; margin: 0 auto; padding: 24px 20px; }
+
+/* ========== 身份弹窗 ========== */
+#identity-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+#identity-modal .card { background: white; border-radius: var(--radius); padding: 32px; width: 400px; box-shadow: var(--shadow-lg); }
+#identity-modal h2 { font-size: 20px; margin-bottom: 6px; }
+#identity-modal p { color: var(--gray-500); font-size: 14px; margin-bottom: 20px; }
+#identity-modal label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+#identity-modal input, #identity-modal select { width: 100%; padding: 10px 14px; border: 2px solid var(--gray-200); border-radius: 8px; font-size: 15px; margin-bottom: 16px; }
+#identity-modal input:focus, #identity-modal select:focus { outline: none; border-color: var(--primary); }
+#identity-modal button { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; }
+#identity-modal button:hover { background: #4338ca; }
+
+/* ========== 展示区（积分榜） ========== */
+.leaderboard { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px; }
+.lb-card { background: white; border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); }
+.lb-card .label { font-size: 13px; color: var(--gray-500); margin-bottom: 10px; font-weight: 600; }
+.lb-card .rank-item { display: flex; align-items: center; gap: 10px; padding: 6px 0; font-size: 14px; }
+.lb-card .rank-num { width: 22px; height: 22px; border-radius: 50%; background: var(--gray-100); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+.lb-card .rank-num.gold { background: #fbbf24; color: white; }
+.lb-card .rank-num.silver { background: #9ca3af; color: white; }
+.lb-card .rank-num.bronze { background: #d97706; color: white; }
+.lb-card .rank-name { flex: 1; }
+.lb-card .rank-score { font-weight: 700; color: var(--primary); }
+
+/* ========== Tab 切换 ========== */
+.tabs { display: flex; gap: 4px; margin-bottom: 20px; background: white; border-radius: var(--radius); padding: 6px; box-shadow: var(--shadow); }
+.tab { flex: 1; padding: 10px; text-align: center; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; color: var(--gray-500); transition: 0.2s; }
+.tab:hover { background: var(--gray-100); }
+.tab.active { background: var(--primary); color: white; }
+
+/* ========== 发布区 ========== */
+.publish-box { background: white; border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); margin-bottom: 20px; }
+.publish-box h3 { font-size: 16px; margin-bottom: 14px; }
+.publish-box label { display: block; font-size: 13px; font-weight: 600; color: var(--gray-700); margin-bottom: 5px; }
+.publish-box input, .publish-box textarea, .publish-box select { width: 100%; padding: 10px 14px; border: 2px solid var(--gray-200); border-radius: 8px; font-size: 14px; margin-bottom: 12px; font-family: inherit; }
+.publish-box input:focus, .publish-box textarea:focus, .publish-box select:focus { outline: none; border-color: var(--primary); }
+.publish-box textarea { resize: vertical; min-height: 80px; }
+.tag-options { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+.tag-btn { padding: 6px 14px; border-radius: 20px; border: 2px solid var(--gray-200); background: white; font-size: 13px; cursor: pointer; transition: 0.2s; }
+.tag-btn:hover { border-color: var(--primary-light); }
+.tag-btn.selected { background: var(--primary-bg); border-color: var(--primary); color: var(--primary); font-weight: 600; }
+.publish-actions { display: flex; gap: 10px; }
+.btn { padding: 10px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; border: none; }
+.btn-primary { background: var(--primary); color: white; }
+.btn-primary:hover { background: #4338ca; }
+.btn-ghost { background: var(--gray-100); color: var(--gray-700); }
+.btn-ghost:hover { background: var(--gray-200); }
+.btn-sm { padding: 6px 14px; font-size: 13px; }
+
+/* ========== 内容卡片列表 ========== */
+.card-list { display: flex; flex-direction: column; gap: 14px; }
+.content-card { background: white; border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); border-left: 4px solid var(--primary); position: relative; }
+.content-card.pinned { border-left-color: var(--warning); background: #fffbeb; }
+.content-card .card-top { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.content-card .type-badge { padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+.badge-q { background: #dbeafe; color: #1d4ed8; }
+.badge-s { background: #d1fae5; color: #065f46; }
+.content-card .card-title { font-size: 16px; font-weight: 700; flex: 1; cursor: pointer; }
+.content-card .card-title:hover { color: var(--primary); }
+.content-card .card-meta { font-size: 13px; color: var(--gray-500); margin-bottom: 8px; }
+.content-card .card-body { font-size: 14px; color: var(--gray-700); line-height: 1.6; margin-bottom: 12px; white-space: pre-wrap; }
+.content-card .card-actions { display: flex; align-items: center; gap: 14px; }
+.card-actions .like-btn { display: flex; align-items: center; gap: 5px; padding: 5px 12px; border-radius: 20px; border: 1px solid var(--gray-200); background: white; cursor: pointer; font-size: 13px; transition: 0.2s; }
+.card-actions .like-btn:hover { border-color: var(--danger); color: var(--danger); }
+.card-actions .like-btn.liked { background: #fef2f2; border-color: var(--danger); color: var(--danger); }
+.card-actions .answer-count { font-size: 13px; color: var(--gray-500); cursor: pointer; }
+.card-actions .answer-count:hover { color: var(--primary); }
+.card-actions .op-btn { font-size: 12px; padding: 4px 10px; border-radius: 6px; border: none; cursor: pointer; }
+.op-pin { background: #fef3c7; color: #92400e; }
+.op-hide { background: #fee2e2; color: #991b1b; }
+.op-del { background: #fee2e2; color: #991b1b; }
+
+/* ========== 回答区 ========== */
+.answers-section { margin-top: 14px; border-top: 1px solid var(--gray-100); padding-top: 14px; }
+.answer-item { padding: 12px 0; border-bottom: 1px solid var(--gray-100); }
+.answer-item:last-child { border-bottom: none; }
+.answer-meta { font-size: 13px; color: var(--gray-500); margin-bottom: 4px; }
+.answer-body { font-size: 14px; line-height: 1.6; }
+.answer-ref { font-size: 12px; color: var(--primary); margin-top: 4px; }
+.reply-box { display: flex; gap: 10px; margin-top: 12px; }
+.reply-box textarea { flex: 1; padding: 10px; border: 2px solid var(--gray-200); border-radius: 8px; font-size: 14px; resize: none; min-height: 60px; }
+.reply-box textarea:focus { outline: none; border-color: var(--primary); }
+
+/* ========== 置顶标记 ========== */
+.pinned-tag { display: inline-block; padding: 2px 8px; background: #fbbf24; color: #78350f; font-size: 11px; font-weight: 700; border-radius: 4px; margin-left: 8px; }
+
+/* ========== 加载 & 空状态 ========== */
+.loading { text-align: center; padding: 40px; color: var(--gray-500); }
+.empty { text-align: center; padding: 50px 20px; color: var(--gray-500); }
+.empty .icon { font-size: 40px; margin-bottom: 10px; }
+
+/* ========== 导出按钮 ========== */
+.export-bar { display: flex; justify-content: flex-end; margin-bottom: 14px; }
+
+/* ========== 响应式 ========== */
+@media (max-width: 700px) {
+  .leaderboard { grid-template-columns: 1fr 1fr; }
+  .header { flex-direction: column; gap: 12px; text-align: center; }
+}
+</style>
+</head>
+<body>
+
+<!-- 身份弹窗 -->
+<div id="identity-modal">
+  <div class="card">
+    <h2>👋 欢迎使用互助看板</h2>
+    <p>请填写你的信息，后续操作将自动带入</p>
+    <label>姓名</label>
+    <input id="modal-name" type="text" placeholder="请输入你的姓名">
+    <label>所属小组</label>
+    <select id="modal-group">
+      <option value="">请选择小组</option>
+      <option value="第一组">第一组 · 高频文书与合规校验助手</option>
+      <option value="第二组">第二组 · 简历解析与招聘协同助手</option>
+      <option value="第三组">第三组 · 薪酬核算与预算追踪</option>
+      <option value="第四组">第四组 · 人员盘面与多维对比看板</option>
+      <option value="第五组">第五组 · 人才档案与职业发展Agent</option>
+      <option value="第六组">第六组 · 项目团队诊断中台</option>
+      <option value="第七组">第七组 · 营销一线团队评价Agent</option>
+      <option value="运营组">运营组</option>
+    </select>
+    <button onclick="saveIdentity()">进入看板 →</button>
+  </div>
+</div>
+
+<!-- 主界面 -->
+<div id="app" style="display:none;">
+  <div class="header">
+    <div>
+      <h1>🤖 AI训练营 · 互助看板</h1>
+      <div class="subtitle">提问 · 回答 · 分享 · 一起成长</div>
+    </div>
+    <div class="user-bar">
+      <div class="avatar" id="header-avatar"></div>
+      <div>
+        <div id="header-name" style="font-weight:600;"></div>
+        <div id="header-group" style="font-size:12px;opacity:0.85;"></div>
+      </div>
+      <button class="btn btn-sm btn-ghost" onclick="logout()" style="color:white;border:1px solid rgba(255,255,255,0.3);">切换</button>
+    </div>
+  </div>
+
+  <div class="container">
+    <!-- 积分榜 -->
+    <div class="leaderboard">
+      <div class="lb-card">
+        <div class="label">🔥 提问榜 Top3</div>
+        <div id="rank-question"></div>
+      </div>
+      <div class="lb-card">
+        <div class="label">💬 回答榜 Top3</div>
+        <div id="rank-answer"></div>
+      </div>
+      <div class="lb-card">
+        <div class="label">📖 分享榜 Top3</div>
+        <div id="rank-share"></div>
+      </div>
+      <div class="lb-card">
+        <div class="label">🏆 小组积分</div>
+        <div id="rank-group"></div>
+      </div>
+    </div>
+
+    <!-- Tab -->
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab('all', this)">全部</div>
+      <div class="tab" onclick="switchTab('提问与回答', this)">❓ 提问与回答</div>
+      <div class="tab" onclick="switchTab('经验分享', this)">💡 经验分享</div>
+      <div class="tab" onclick="switchTab('mine', this)">我的</div>
+    </div>
+
+    <!-- 运营：导出 -->
+    <div class="export-bar" id="export-bar" style="display:none;">
+      <button class="btn btn-sm btn-ghost" onclick="exportCSV()">📥 导出数据（CSV）</button>
+    </div>
+
+    <!-- 发布区 -->
+    <div class="publish-box" id="publish-box">
+      <h3 id="publish-title">✏️ 发起提问</h3>
+      <label>内容类型</label>
+      <select id="content-type" onchange="onTypeChange()">
+        <option value="提问与回答">❓ 提问与回答</option>
+        <option value="经验分享">💡 经验分享</option>
+      </select>
+      <div id="tag-section">
+        <label>分类标签</label>
+        <div class="tag-options" id="tag-options"></div>
+      </div>
+      <label>标题</label>
+      <input id="post-title" type="text" placeholder="简要描述你的问题或分享主题">
+      <label>正文</label>
+      <textarea id="post-body" placeholder="详细描述你的问题，或分享你的经验..."></textarea>
+      <div class="publish-actions">
+        <button class="btn btn-primary" onclick="submitPost()">发布</button>
+        <button class="btn btn-ghost" onclick="clearPost()">清空</button>
+      </div>
+    </div>
+
+    <!-- 内容列表 -->
+    <div class="card-list" id="card-list">
+      <div class="loading">加载中...</div>
+    </div>
+  </div>
+</div>
+
+<!-- 回答弹窗（展开卡片用） -->
+<div id="detail-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:999; overflow-y:auto;">
+  <div style="max-width:720px; margin:40px auto; background:white; border-radius:var(--radius); padding:28px; position:relative;">
+    <button onclick="closeDetail()" style="position:absolute;top:16px;right:16px;background:none;border:none;font-size:22px;cursor:pointer;">✕</button>
+    <div id="detail-content"></div>
+  </div>
+</div>
+
+<script>
+// ===================== 配置区 =====================
+// ⚠️ 部署前请修改以下配置
+// API_BASE_URL: 中转服务地址，详见部署说明
+// SCF 云函数地址（HTML 托管在 COS，跨域请求 API）
+const API_BASE_URL = 'https://1258029670-gz6w6pca59.ap-guangzhou.tencentscf.com/api';
+
+const CONFIG = {
+  appToken:   'NMvdbg8rUaqL53stgRuc13iDn9d',
+  mainTable:  'tbl3jDKRPoQOaXM2',   // 内容主表
+  answerTable:'tbl1uEHdL635o0pY',    // 回答表
+  scoreTable: 'tblKxQwDNatv4ycs',    // 成员积分表
+  admins:     ['赵一丹', '陈子昂', '佘紫薇']  // 运营权限成员
+};
+
+// 字段名映射（飞书 Excel 导入会自动在字段名后加 \n(说明)，必须用实际字段名）
+const F_MAIN = {
+  contentId: '内容ID\n(自动填写)',
+  contentType:'内容类型\n(必填)',
+  tag:       '分类标签\n(必填)',
+  author:    '发布人\n(必填)',
+  time:      '发布时间\n(自动)',
+  answers:   '回答数\n(仅提问类)',
+  group:     '所属小组\n(必填)',
+  pinned:    '是否置顶\n(运营操作)',
+  hidden:    '是否隐藏\n(运营操作)',
+  title:     '标题\n(必填)',
+  body:      '正文内容\n(必填)',
+  likes:     '点赞数\n(系统记录)',
+  status:    '状态\n(必填)'
+};
+
+const F_ANSWER = {
+  likes:     '初始填0',
+  linkId:    '填写对应的内容ID\n如：C001',
+  author:    '填写真实姓名',
+  time:      '格式：2026-06-08 10：00',
+  group:     '第一组~第七组\n或运营组',
+  answerId:  '格式：A001|A002…',
+  refDesc:   '简述资料内容\n方便快速判断',
+  refUrl:    '粘贴参考资料URL\n可填多个，换行分隔',
+  body:      '详细回答内容\n建议附上截图说明'
+};
+
+const F_SCORE = {
+  name:          '【成员信息】：姓名：真实姓名',
+  group:         '【成员信息】：所属小组：第一~第七组',
+  role:          '【成员信息】：角色：组长 | 组员',
+  askCount:      '【行为次数（手动|运营每周更新）】：提问次数：每提交1条问题 记1次',
+  answerCount:   '【行为次数（手动|运营每周更新）】：回答次数：每提交1条回答 记1次（积分+2）',
+  shareCount:    '【行为次数（手动|运营每周更新）】：经验分享次数：每发布1条经验 记1次（积分+3）',
+  likedCount:    '【行为次数（手动|运营每周更新）】：被点赞次数：被点赞1次记1 运营每周统计',
+  totalScore:    '【总积分（公式自动）】：总积分 (提问×1+回答×2+分享×3+点赞×1)：E×1+F×2+G×3+H×1 公式自动计算',
+  askRank:       '【本期排名（运营填写）】：提问榜 排名：按总积分降序 每周运营填写',
+  answerRank:    '【本期排名（运营填写）】：回答榜 排名：按回答次数降序 每周运营填写'
+};
+
+// 分类标签选项
+const TAGS = {
+  '提问与回答': ['🛠️ 工具使用', '🤖 Agent/工作流', '📝 提示词工程', '🔗 API/集成', '📊 数据分析', '🎨 多模态/图像', '🚀 产品规划', '📖 其他'],
+  '经验分享': ['💡 工具技巧', '🔧 踩坑记录', '📖 资源推荐', '🤖 提示词分享', '🔗 工作流分享', '🚀 产品经验', '📌 其他']
+};
+// ===================================================
+
+// ===================== 全局状态 =====================
+let currentUser = null;   // { name, group }
+let allPosts = [];        // 所有内容
+let currentTab = 'all';
+let currentDetail = null;  // 当前展开的内容
+
+// ===================== 身份管理 =====================
+function loadIdentity() {
+  const saved = localStorage.getItem('ai_camp_user');
+  if (saved) {
+    currentUser = JSON.parse(saved);
+    return true;
+  }
+  return false;
+}
+
+function saveIdentity() {
+  const name = document.getElementById('modal-name').value.trim();
+  const group = document.getElementById('modal-group').value;
+  if (!name || !group) { alert('请填写姓名并选择小组'); return; }
+  currentUser = { name, group };
+  localStorage.setItem('ai_camp_user', JSON.stringify(currentUser));
+  initApp();
+}
+
+function logout() {
+  localStorage.removeItem('ai_camp_user');
+  location.reload();
+}
+
+function initApp() {
+  document.getElementById('identity-modal').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('header-name').textContent = currentUser.name;
+  document.getElementById('header-group').textContent = currentUser.group;
+  document.getElementById('header-avatar').textContent = currentUser.name[0];
+
+  // 运营权限
+  if (CONFIG.admins.includes(currentUser.name)) {
+    document.getElementById('export-bar').style.display = 'flex';
+  }
+
+  onTypeChange();
+  loadPosts();
+  loadRanks();
+}
+
+// ===================== 标签渲染 =====================
+function onTypeChange() {
+  const type = document.getElementById('content-type').value;
+  const tags = TAGS[type] || [];
+  const container = document.getElementById('tag-options');
+  container.innerHTML = '';
+  tags.forEach(t => {
+    const btn = document.createElement('div');
+    btn.className = 'tag-btn';
+    btn.textContent = t;
+    btn.onclick = () => btn.classList.toggle('selected');
+    container.appendChild(btn);
+  });
+}
+
+function getSelectedTags() {
+  return [...document.querySelectorAll('#tag-options .tag-btn.selected')].map(e => e.textContent);
+}
+
+// ===================== Tab 切换 =====================
+function switchTab(tab, el) {
+  currentTab = tab;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  renderCards();
+}
+
+// ===================== API 调用（通过中转服务） =====================
+async function apiCall(endpoint, options = {}) {
+  const url = API_BASE_URL + endpoint;
+  const resp = await fetch(url, {
+    ...options,
+    headers: { 'Content-Type': 'application/json', ...options.headers }
+  });
+  return resp.json();
+}
+
+// 获取 tenant_access_token（由中转服务处理）
+async function getToken() {
+  // 中转服务会自动处理 token，前端不需要知道 App Secret
+  // 这里只是触发一次请求，让中转服务刷新 token
+  return true;
+}
+
+// ===================== 加载数据 =====================
+async function loadPosts() {
+  try {
+    const data = await apiCall(`/bitable/v1/apps/${CONFIG.appToken}/tables/${CONFIG.mainTable}/records?page_size=200`);
+    if (data.code === 0) {
+      allPosts = data.data.items.map(r => ({
+        id: r.record_id,
+        ...r.fields
+      })).filter(p => !p[F_MAIN.hidden] || p[F_MAIN.hidden] === '否');
+      // 置顶排序
+      allPosts.sort((a, b) => {
+        if (a[F_MAIN.pinned] === '是' && b[F_MAIN.pinned] !== '是') return -1;
+        if (a[F_MAIN.pinned] !== '是' && b[F_MAIN.pinned] === '是') return 1;
+        return new Date(b[F_MAIN.time] || 0) - new Date(a[F_MAIN.time] || 0);
+      });
+      renderCards();
+    } else {
+      console.error('加载失败', data);
+    }
+  } catch (e) {
+    console.error(e);
+    document.getElementById('card-list').innerHTML = '<div class="empty">⚠️ 加载失败，请检查网络连接或中转服务配置</div>';
+  }
+}
+
+async function loadRanks() {
+  // 从 allPosts 本地计算排行榜
+  // 提问榜
+  const qRank = {};
+  allPosts.filter(p => p[F_MAIN.contentType] === '提问与回答').forEach(p => {
+    qRank[p[F_MAIN.author]] = (qRank[p[F_MAIN.author]] || 0) + 1;
+  });
+  renderRank('rank-question', qRank);
+
+  // 回答榜（需要加载回答数据）
+  try {
+    const data = await apiCall(`/bitable/v1/apps/${CONFIG.appToken}/tables/${CONFIG.answerTable}/records?page_size=200`);
+    if (data.code === 0) {
+      const aRank = {};
+        data.data.items.forEach(r => {
+          const name = r.fields[F_ANSWER.author];
+          aRank[name] = (aRank[name] || 0) + 1;
+        });
+      renderRank('rank-answer', aRank);
+    }
+  } catch(e) { console.error(e); }
+
+  // 分享榜
+  const sRank = {};
+  allPosts.filter(p => p[F_MAIN.contentType] === '经验分享').forEach(p => {
+    sRank[p[F_MAIN.author]] = (sRank[p[F_MAIN.author]] || 0) + 1;
+  });
+  renderRank('rank-share', sRank);
+
+  // 小组积分
+  const gRank = {};
+  allPosts.forEach(p => {
+    const g = p[F_MAIN.group];
+    gRank[g] = (gRank[g] || 0) + (p[F_MAIN.contentType] === '经验分享' ? 3 : 1);
+  });
+  renderRank('rank-group', gRank, true);
+}
+
+function renderRank(elId, rankObj, isGroup) {
+  const el = document.getElementById(elId);
+  const sorted = Object.entries(rankObj).sort((a,b) => b[1] - a[1]).slice(0, 3);
+  el.innerHTML = sorted.map(([name, score], i) => `
+    <div class="rank-item">
+      <div class="rank-num ${i===0?'gold':i===1?'silver':i===2?'bronze':''}">${i+1}</div>
+      <div class="rank-name">${name}</div>
+      <div class="rank-score">${score}</div>
+    </div>
+  `).join('') || '<div style="color:#9ca3af;font-size:13px;">暂无数据</div>';
+}
+
+// ===================== 渲染卡片 =====================
+function renderCards() {
+  let posts = [...allPosts];
+  if (currentTab === '提问与回答') posts = posts.filter(p => p[F_MAIN.contentType] === '提问与回答');
+  if (currentTab === '经验分享') posts = posts.filter(p => p[F_MAIN.contentType] === '经验分享');
+  if (currentTab === 'mine') posts = posts.filter(p => p[F_MAIN.author] === currentUser.name);
+
+  const container = document.getElementById('card-list');
+  if (posts.length === 0) {
+    container.innerHTML = '<div class="empty"><div class="icon">📭</div>暂无内容，来发第一条吧！</div>';
+    return;
+  }
+  container.innerHTML = posts.map(p => renderCard(p)).join('');
+}
+
+function renderCard(p) {
+  const isQ = p[F_MAIN.contentType] === '提问与回答';
+  const badgeClass = isQ ? 'badge-q' : 'badge-s';
+  const badgeText = isQ ? '❓ 提问' : '💡 分享';
+  const pinnedTag = p[F_MAIN.pinned] && p[F_MAIN.pinned] !== '否' ? '<span class="pinned-tag">📌 置顶</span>' : '';
+  const pinnedClass = p[F_MAIN.pinned] && p[F_MAIN.pinned] !== '否' ? 'pinned' : '';
+
+  return `
+    <div class="content-card ${pinnedClass}" onclick="openDetail('${p.id}')">
+      <div class="card-top">
+        <span class="type-badge ${badgeClass}">${badgeText}</span>
+        <div class="card-title">${escapeHtml(p[F_MAIN.title] || '')} ${pinnedTag}</div>
+      </div>
+      <div class="card-meta">👤 ${p[F_MAIN.author]} · ${p[F_MAIN.group]} · 🕐 ${formatTime(p[F_MAIN.time])}</div>
+      <div class="card-body">${escapeHtml(truncate(p[F_MAIN.body] || '', 120))}</div>
+      <div class="card-actions" onclick="event.stopPropagation()">
+        <button class="like-btn ${hasLiked(p.id)?'liked':''}" onclick="likePost('${p.id}')">👍 ${p[F_MAIN.likes] || 0}</button>
+        ${isQ ? `<span class="answer-count" onclick="openDetail('${p.id}')">💬 ${p[F_MAIN.answers] || 0} 条回答</span>` : ''}
+        ${CONFIG.admins.includes(currentUser.name) ? `
+          <button class="op-btn op-pin" onclick="togglePin('${p.id}', ${p[F_MAIN.pinned] && p[F_MAIN.pinned] !== '否'})">${p[F_MAIN.pinned] && p[F_MAIN.pinned] !== '否'?'取消置顶':'置顶'}</button>
+          <button class="op-btn op-hide" onclick="toggleHide('${p.id}', true)">隐藏</button>
+        ` : ''}
+      </div>
+    </div>
+  `;
+}
+
+// ===================== 详情/回答 =====================
+async function openDetail(id) {
+  const post = allPosts.find(p => p.id === id);
+  if (!post) return;
+  currentDetail = post;
+
+  let answersHtml = '';
+  if (post[F_MAIN.contentType] === '提问与回答') {
+    // 加载回答
+    try {
+      const data = await apiCall(`/bitable/v1/apps/${CONFIG.appToken}/tables/${CONFIG.answerTable}/records?page_size=200`);
+      if (data.code === 0) {
+        const answers = data.data.items
+          .filter(r => r.fields[F_ANSWER.linkId] === id)
+          .map(r => ({ id: r.record_id, ...r.fields }));
+        answersHtml = `<div class="answers-section">
+          <h4 style="margin-bottom:12px;">💬 回答（${answers.length}）</h4>
+          ${answers.map(a => `
+            <div class="answer-item">
+              <div class="answer-meta">👤 ${a[F_ANSWER.author]} · ${a[F_ANSWER.group]} · 🕐 ${formatTime(a[F_ANSWER.time])}</div>
+              <div class="answer-body">${escapeHtml(a[F_ANSWER.body] || '')}</div>
+              ${a[F_ANSWER.refUrl] ? `<div class="answer-ref">📎 <a href="${a[F_ANSWER.refUrl]}" target="_blank">${a[F_ANSWER.refDesc]||'参考资料'}</a></div>` : ''}
+              <div style="margin-top:8px;">
+                <button class="like-btn ${hasLiked(a.id)?'liked':''}" onclick="likeAnswer('${a.id}')">👍 ${a[F_ANSWER.likes]||0}</button>
+              </div>
+            </div>
+          `).join('')}
+          <div class="reply-box">
+            <textarea placeholder="写下你的回答..." id="reply-input"></textarea>
+            <button class="btn btn-primary btn-sm" onclick="submitAnswer('${id}')">提交回答</button>
+          </div>
+        </div>`;
+      }
+    } catch(e) { console.error(e); }
+  }
+
+  document.getElementById('detail-content').innerHTML = `
+    <div class="type-badge ${post[F_MAIN.contentType]==='提问与回答'?'badge-q':'badge-s'}" style="margin-bottom:12px;display:inline-block;">
+      ${post[F_MAIN.contentType]==='提问与回答'?'❓ 提问':'💡 分享'}
+    </div>
+    <h2 style="margin-bottom:8px;">${escapeHtml(post[F_MAIN.title]||'')}</h2>
+    <div class="card-meta">👤 ${post[F_MAIN.author]} · ${post[F_MAIN.group]} · 🕐 ${formatTime(post[F_MAIN.time])} · 分类：${post[F_MAIN.tag]||'无'}</div>
+    <div class="card-body" style="margin-top:14px;white-space:pre-wrap;">${escapeHtml(post[F_MAIN.body]||'')}</div>
+    <div class="card-actions" style="margin-bottom:16px;">
+      <button class="like-btn ${hasLiked(post.id)?'liked':''}" onclick="likePost('${post.id}')">👍 ${post[F_MAIN.likes]||0}</button>
+    </div>
+    ${answersHtml}
+  `;
+  document.getElementById('detail-modal').style.display = 'block';
+}
+
+function closeDetail() {
+  document.getElementById('detail-modal').style.display = 'none';
+  currentDetail = null;
+}
+
+// ===================== 提交 =====================
+async function submitPost() {
+  const type = document.getElementById('content-type').value;
+  const title = document.getElementById('post-title').value.trim();
+  const body = document.getElementById('post-body').value.trim();
+  const tags = getSelectedTags();
+  if (!title) { alert('请填写标题'); return; }
+  if (!body) { alert('请填写正文'); return; }
+
+  const now = new Date().toISOString().replace('T', ' ').slice(0, 16);
+  const fields = {};
+  fields[F_MAIN.contentType] = type;
+  fields[F_MAIN.author] = currentUser.name;
+  fields[F_MAIN.group] = currentUser.group;
+  fields[F_MAIN.time] = now;
+  fields[F_MAIN.tag] = tags.join(', ');
+  fields[F_MAIN.title] = title;
+  fields[F_MAIN.body] = body;
+  fields[F_MAIN.status] = type === '提问与回答' ? '⏳ 待回答' : '📢 已发布';
+  fields[F_MAIN.likes] = '0';
+  fields[F_MAIN.answers] = '0';
+  fields[F_MAIN.pinned] = '否';
+  fields[F_MAIN.hidden] = '否';
+
+  try {
+    const resp = await apiCall(`/bitable/v1/apps/${CONFIG.appToken}/tables/${CONFIG.mainTable}/records`, {
+      method: 'POST',
+      body: JSON.stringify({ fields })
+    });
+    if (resp.code === 0) {
+      alert('发布成功！');
+      clearPost();
+      loadPosts();
+    } else {
+      alert('发布失败：' + resp.msg);
+    }
+  } catch(e) {
+    alert('网络错误，请重试');
+  }
+}
+
+async function submitAnswer(postId) {
+  const body = document.getElementById('reply-input').value.trim();
+  if (!body) { alert('请填写回答内容'); return; }
+
+  const now = new Date().toISOString();
+  const fields = {};
+  fields[F_ANSWER.linkId] = postId;
+  fields[F_ANSWER.author] = currentUser.name;
+  fields[F_ANSWER.group] = currentUser.group;
+  fields[F_ANSWER.time] = now;
+  fields[F_ANSWER.body] = body;
+  fields[F_ANSWER.likes] = '0';
+
+  try {
+    const resp = await apiCall(`/bitable/v1/apps/${CONFIG.appToken}/tables/${CONFIG.answerTable}/records`, {
+      method: 'POST',
+      body: JSON.stringify({ fields })
+    });
+    if (resp.code === 0) {
+      // 更新主表回答数
+      const post = allPosts.find(p => p.id === postId);
+      if (post) {
+        const updateFields = {};
+        updateFields[F_MAIN.answers] = (post[F_MAIN.answers] || 0) + 1;
+        await apiCall(`/bitable/v1/apps/${CONFIG.appToken}/tables/${CONFIG.mainTable}/records/${postId}`, {
+          method: 'PUT',
+          body: JSON.stringify({ fields: updateFields })
+        });
+      }
+      alert('回答成功！');
+      closeDetail();
+      loadPosts();
+    } else {
+      alert('提交失败：' + resp.msg);
+    }
+  } catch(e) {
+    alert('网络错误，请重试');
+  }
+}
+
+// ===================== 点赞 =====================
+function getLikedSet() {
+  return new Set(JSON.parse(localStorage.getItem('liked_' + currentUser.name) || '[]'));
+}
+
+function hasLiked(id) {
+  return getLikedSet().has(id);
+}
+
+function markLiked(id) {
+  const s = getLikedSet();
+  s.add(id);
+  localStorage.setItem('liked_' + currentUser.name, JSON.stringify([...s]));
+}
+
+async function likePost(id) {
+  if (hasLiked(id)) return;
+  markLiked(id);
+  const post = allPosts.find(p => p.id === id);
+  if (!post) return;
+  const newCount = (parseInt(post[F_MAIN.likes]) || 0) + 1;
+  try {
+    const updateFields = {};
+    updateFields[F_MAIN.likes] = String(newCount);
+    await apiCall(`/bitable/v1/apps/${CONFIG.appToken}/tables/${CONFIG.mainTable}/records/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({ fields: updateFields })
+    });
+    post[F_MAIN.likes] = String(newCount);
+    renderCards();
+    if (currentDetail && currentDetail.id === id) openDetail(id);
+  } catch(e) { console.error(e); }
+}
+
+async function likeAnswer(id) {
+  if (hasLiked(id)) return;
+  markLiked(id);
+  try {
+    // 需要先查出当前点赞数
+    const resp = await apiCall(`/bitable/v1/apps/${CONFIG.appToken}/tables/${CONFIG.answerTable}/records/${id}`);
+    if (resp.code === 0) {
+      const newCount = (parseInt(resp.data.fields[F_ANSWER.likes]) || 0) + 1;
+      const updateFields = {};
+      updateFields[F_ANSWER.likes] = String(newCount);
+      await apiCall(`/bitable/v1/apps/${CONFIG.appToken}/tables/${CONFIG.answerTable}/records/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify({ fields: updateFields })
+      });
+      if (currentDetail) openDetail(currentDetail.id);
+    }
+  } catch(e) { console.error(e); }
+}
+
+// ===================== 运营操作 =====================
+async function togglePin(id, current) {
+  try {
+    const updateFields = {};
+    updateFields[F_MAIN.pinned] = current ? '否' : '是';
+    await apiCall(`/bitable/v1/apps/${CONFIG.appToken}/tables/${CONFIG.mainTable}/records/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({ fields: updateFields })
+    });
+    closeDetail();
+    loadPosts();
+  } catch(e) { console.error(e); }
+}
+
+async function toggleHide(id, hide) {
+  try {
+    const updateFields = {};
+    updateFields[F_MAIN.hidden] = hide ? '是' : '否';
+    await apiCall(`/bitable/v1/apps/${CONFIG.appToken}/tables/${CONFIG.mainTable}/records/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({ fields: updateFields })
+    });
+    closeDetail();
+    loadPosts();
+  } catch(e) { console.error(e); }
+}
+
+// ===================== 导出 CSV =====================
+function exportCSV() {
+  const rows = [['内容类型','发布人','所属小组','标题','分类标签','发布时间','点赞数','回答数','状态']];
+  allPosts.forEach(p => {
+    rows.push([p[F_MAIN.contentType],p[F_MAIN.author],p[F_MAIN.group],p[F_MAIN.title],p[F_MAIN.tag],p[F_MAIN.time],p[F_MAIN.likes],p[F_MAIN.answers],p[F_MAIN.status]]);
+  });
+  const csv = rows.map(r => r.map(c => '"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const blob = new Blob(['\ufeff'+csv], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'AI训练营互助看板_' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click();
+}
+
+// ===================== 工具函数 =====================
+function clearPost() {
+  document.getElementById('post-title').value = '';
+  document.getElementById('post-body').value = '';
+  document.querySelectorAll('#tag-options .tag-btn.selected').forEach(e => e.classList.remove('selected'));
+}
+
+function formatTime(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return `${d.getMonth()+1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+
+function truncate(str, len) {
+  if (!str) return '';
+  return str.length > len ? str.slice(0, len) + '...' : str;
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ===================== 启动 =====================
+if (loadIdentity()) {
+  initApp();
+}
+</script>
+</body>
+</html>
