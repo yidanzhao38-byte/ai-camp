@@ -33,7 +33,6 @@ body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
 .header .subtitle { font-size: 13px; opacity: 0.85; margin-top: 2px; }
 .user-bar { display: flex; align-items: center; gap: 12px; font-size: 14px; }
 .user-bar .avatar { width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.25); display: flex; align-items: center; justify-content: center; font-weight: 700; }
-
 .container { max-width: 1100px; margin: 0 auto; padding: 24px 20px; }
 
 /* ========== 身份弹窗 ========== */
@@ -45,7 +44,6 @@ body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
 #identity-modal input, #identity-modal select { width: 100%; padding: 10px 14px; border: 2px solid var(--gray-200); border-radius: 8px; font-size: 15px; margin-bottom: 16px; }
 #identity-modal input:focus, #identity-modal select:focus { outline: none; border-color: var(--primary); }
 #identity-modal button { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; }
-#identity-modal button:hover { background: #4338ca; }
 
 /* ========== 展示区（积分榜） ========== */
 .leaderboard { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px; }
@@ -65,38 +63,69 @@ body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
 .tab:hover { background: var(--gray-100); }
 .tab.active { background: var(--primary); color: white; }
 
-/* ========== 发布区 ========== */
-.publish-box { background: white; border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); margin-bottom: 20px; }
-.publish-box h3 { font-size: 16px; margin-bottom: 14px; }
-.publish-box label { display: block; font-size: 13px; font-weight: 600; color: var(--gray-700); margin-bottom: 5px; }
-.publish-box input, .publish-box textarea, .publish-box select { width: 100%; padding: 10px 14px; border: 2px solid var(--gray-200); border-radius: 8px; font-size: 14px; margin-bottom: 12px; font-family: inherit; }
-.publish-box input:focus, .publish-box textarea:focus, .publish-box select:focus { outline: none; border-color: var(--primary); }
-.publish-box textarea { resize: vertical; min-height: 80px; }
-.tag-options { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+/* ========== 入口卡片（全部页 2 个 / 分类页 1 个） ========== */
+.entry-cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 24px; }
+.entry-cards.single { display: block; }
+.entry-card { background: white; border-radius: var(--radius); padding: 28px 24px; box-shadow: var(--shadow); cursor: pointer; border: 2px solid transparent; transition: all 0.2s; text-align: center; }
+.entry-card:hover { border-color: var(--primary-light); box-shadow: var(--shadow-lg); transform: translateY(-2px); }
+.entry-card .entry-icon { font-size: 36px; margin-bottom: 12px; }
+.entry-card .entry-title { font-size: 18px; font-weight: 700; margin-bottom: 6px; color: var(--gray-900); }
+.entry-card .entry-desc { font-size: 13px; color: var(--gray-500); line-height: 1.5; }
+.entry-card.card-q:hover { border-color: #3b82f6; background: #eff6ff; }
+.entry-card.card-s:hover { border-color: #10b981; background: #ecfdf5; }
+
+/* ========== 内联表单卡片（单卡片标签页直显） ========== */
+.inline-form-card { background: white; border-radius: var(--radius); padding: 32px; box-shadow: var(--shadow); width: 100%; box-sizing: border-box; }
+.inline-form-card .entry-icon { font-size: 40px; margin-bottom: 4px; }
+.inline-form-card .entry-title { font-size: 20px; font-weight: 700; margin-bottom: 20px; color: var(--gray-900); }
+.inline-form-card .form-row { margin-bottom: 16px; }
+.inline-form-card label { display: block; font-size: 13px; font-weight: 600; color: var(--gray-700); margin-bottom: 6px; }
+.inline-form-card select, .inline-form-card input, .inline-form-card textarea { width: 100%; padding: 10px 14px; border: 2px solid var(--gray-200); border-radius: 8px; font-size: 14px; font-family: inherit; }
+.inline-form-card select:focus, .inline-form-card input:focus, .inline-form-card textarea:focus { outline: none; border-color: var(--primary); }
+.inline-form-card textarea { resize: vertical; min-height: 120px; }
+.inline-form-card .btn-block { width: 100%; margin-top: 4px; }
+.inline-form-card .tag-options { display: flex; flex-wrap: wrap; gap: 8px; }
+.inline-form-card .tag-btn { padding: 6px 14px; border-radius: 20px; border: 2px solid var(--gray-200); background: white; font-size: 13px; cursor: pointer; transition: 0.2s; }
+.inline-form-card .tag-btn:hover { border-color: var(--primary-light); }
+.inline-form-card .tag-btn.selected { background: var(--primary-bg); border-color: var(--primary); color: var(--primary); font-weight: 600; }
+
+/* ========== 创建弹窗 ========== */
+#create-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 999; overflow-y: auto; }
+#create-modal .modal-card { max-width: 600px; margin: 40px auto; background: white; border-radius: var(--radius); padding: 28px; box-shadow: var(--shadow-lg); position: relative; }
+#create-modal .modal-close { position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 22px; cursor: pointer; color: var(--gray-500); }
+#create-modal h3 { font-size: 18px; margin-bottom: 18px; }
+#create-modal label { display: block; font-size: 13px; font-weight: 600; color: var(--gray-700); margin-bottom: 5px; margin-top: 12px; }
+#create-modal select, #create-modal input, #create-modal textarea { width: 100%; padding: 10px 14px; border: 2px solid var(--gray-200); border-radius: 8px; font-size: 14px; font-family: inherit; margin-bottom: 4px; }
+#create-modal select:focus, #create-modal input:focus, #create-modal textarea:focus { outline: none; border-color: var(--primary); }
+#create-modal textarea { resize: vertical; min-height: 120px; }
+.tag-options { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
 .tag-btn { padding: 6px 14px; border-radius: 20px; border: 2px solid var(--gray-200); background: white; font-size: 13px; cursor: pointer; transition: 0.2s; }
 .tag-btn:hover { border-color: var(--primary-light); }
 .tag-btn.selected { background: var(--primary-bg); border-color: var(--primary); color: var(--primary); font-weight: 600; }
-.publish-actions { display: flex; gap: 10px; }
+
+/* ========== 按钮 ========== */
 .btn { padding: 10px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; border: none; }
 .btn-primary { background: var(--primary); color: white; }
 .btn-primary:hover { background: #4338ca; }
 .btn-ghost { background: var(--gray-100); color: var(--gray-700); }
 .btn-ghost:hover { background: var(--gray-200); }
 .btn-sm { padding: 6px 14px; font-size: 13px; }
+.btn-block { width: 100%; margin-top: 16px; }
 
 /* ========== 内容卡片列表 ========== */
 .card-list { display: flex; flex-direction: column; gap: 14px; }
 .content-card { background: white; border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); border-left: 4px solid var(--primary); position: relative; }
 .content-card.pinned { border-left-color: var(--warning); background: #fffbeb; }
 .content-card .card-top { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
-.content-card .type-badge { padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+.content-card .type-badge { padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; flex-shrink: 0; }
 .badge-q { background: #dbeafe; color: #1d4ed8; }
 .badge-s { background: #d1fae5; color: #065f46; }
 .content-card .card-title { font-size: 16px; font-weight: 700; flex: 1; cursor: pointer; }
 .content-card .card-title:hover { color: var(--primary); }
 .content-card .card-meta { font-size: 13px; color: var(--gray-500); margin-bottom: 8px; }
 .content-card .card-body { font-size: 14px; color: var(--gray-700); line-height: 1.6; margin-bottom: 12px; white-space: pre-wrap; }
-.content-card .card-actions { display: flex; align-items: center; gap: 14px; }
+.content-card .card-tag { display: inline-block; padding: 2px 8px; background: var(--gray-100); border-radius: 4px; font-size: 12px; color: var(--gray-500); margin-right: 6px; margin-bottom: 8px; }
+.content-card .card-actions { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
 .card-actions .like-btn { display: flex; align-items: center; gap: 5px; padding: 5px 12px; border-radius: 20px; border: 1px solid var(--gray-200); background: white; cursor: pointer; font-size: 13px; transition: 0.2s; }
 .card-actions .like-btn:hover { border-color: var(--danger); color: var(--danger); }
 .card-actions .like-btn.liked { background: #fef2f2; border-color: var(--danger); color: var(--danger); }
@@ -105,17 +134,21 @@ body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
 .card-actions .op-btn { font-size: 12px; padding: 4px 10px; border-radius: 6px; border: none; cursor: pointer; }
 .op-pin { background: #fef3c7; color: #92400e; }
 .op-hide { background: #fee2e2; color: #991b1b; }
-.op-del { background: #fee2e2; color: #991b1b; }
 
-/* ========== 回答区 ========== */
-.answers-section { margin-top: 14px; border-top: 1px solid var(--gray-100); padding-top: 14px; }
-.answer-item { padding: 12px 0; border-bottom: 1px solid var(--gray-100); }
-.answer-item:last-child { border-bottom: none; }
-.answer-meta { font-size: 13px; color: var(--gray-500); margin-bottom: 4px; }
-.answer-body { font-size: 14px; line-height: 1.6; }
-.answer-ref { font-size: 12px; color: var(--primary); margin-top: 4px; }
-.reply-box { display: flex; gap: 10px; margin-top: 12px; }
-.reply-box textarea { flex: 1; padding: 10px; border: 2px solid var(--gray-200); border-radius: 8px; font-size: 14px; resize: none; min-height: 60px; }
+/* ========== 回答区（卡片内自动展示） ========== */
+.answers-inline { margin-top: 14px; border-top: 1px solid var(--gray-100); padding-top: 12px; }
+.answers-inline .answer-item { padding: 10px 0; border-bottom: 1px solid var(--gray-50); }
+.answers-inline .answer-item:last-child { border-bottom: none; }
+.answers-inline .answer-meta { font-size: 12px; color: var(--gray-500); margin-bottom: 4px; }
+.answers-inline .answer-body { font-size: 14px; line-height: 1.6; white-space: pre-wrap; }
+.answers-inline .answer-ref { font-size: 12px; color: var(--primary); margin-top: 4px; }
+
+/* ========== 详情弹窗 ========== */
+#detail-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 999; overflow-y: auto; }
+#detail-modal .modal-card { max-width: 720px; margin: 40px auto; background: white; border-radius: var(--radius); padding: 28px; position: relative; }
+#detail-modal .modal-close { position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 22px; cursor: pointer; color: var(--gray-500); }
+.reply-box { display: flex; gap: 10px; margin-top: 12px; align-items: flex-start; }
+.reply-box textarea { flex: 1; padding: 10px; border: 2px solid var(--gray-200); border-radius: 8px; font-size: 14px; resize: vertical; min-height: 60px; font-family: inherit; }
 .reply-box textarea:focus { outline: none; border-color: var(--primary); }
 
 /* ========== 置顶标记 ========== */
@@ -133,6 +166,7 @@ body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
 @media (max-width: 700px) {
   .leaderboard { grid-template-columns: 1fr 1fr; }
   .header { flex-direction: column; gap: 12px; text-align: center; }
+  .entry-cards { grid-template-columns: 1fr; }
 }
 </style>
 </head>
@@ -207,64 +241,70 @@ body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
       <div class="tab" onclick="switchTab('mine', this)">我的</div>
     </div>
 
-    <!-- 运营：导出 -->
+    <!-- 运营导出 -->
     <div class="export-bar" id="export-bar" style="display:none;">
       <button class="btn btn-sm btn-ghost" onclick="exportCSV()">📥 导出数据（CSV）</button>
     </div>
 
-    <!-- 发布区 -->
-    <div class="publish-box" id="publish-box">
-      <h3 id="publish-title">✏️ 发起提问</h3>
-      <label>内容类型</label>
-      <select id="content-type" onchange="onTypeChange()">
-        <option value="提问与回答">❓ 提问与回答</option>
-        <option value="经验分享">💡 经验分享</option>
-      </select>
-      <div id="tag-section">
-        <label>分类标签</label>
-        <div class="tag-options" id="tag-options"></div>
-      </div>
-      <label>标题</label>
-      <input id="post-title" type="text" placeholder="简要描述你的问题或分享主题">
-      <label>正文</label>
-      <textarea id="post-body" placeholder="详细描述你的问题，或分享你的经验..."></textarea>
-      <div class="publish-actions">
-        <button class="btn btn-primary" onclick="submitPost()">发布</button>
-        <button class="btn btn-ghost" onclick="clearPost()">清空</button>
-      </div>
-    </div>
-
-    <!-- 内容列表 -->
+    <!-- 入口卡片 + 内容列表 -->
+    <div class="entry-cards" id="entry-cards"></div>
     <div class="card-list" id="card-list">
       <div class="loading">加载中...</div>
     </div>
   </div>
 </div>
 
-<!-- 回答弹窗（展开卡片用） -->
-<div id="detail-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:999; overflow-y:auto;">
-  <div style="max-width:720px; margin:40px auto; background:white; border-radius:var(--radius); padding:28px; position:relative;">
-    <button onclick="closeDetail()" style="position:absolute;top:16px;right:16px;background:none;border:none;font-size:22px;cursor:pointer;">✕</button>
+<!-- 创建弹窗 -->
+<div id="create-modal">
+  <div class="modal-card">
+    <button class="modal-close" onclick="closeCreate()">✕</button>
+    <h3 id="create-modal-title">✏️ 发起提问</h3>
+    <div>
+      <label>内容类型</label>
+      <select id="create-content-type" onchange="onCreateTypeChange()">
+        <option value="提问与回答">❓ 提问与回答</option>
+        <option value="经验分享">💡 经验分享</option>
+      </select>
+    </div>
+    <div>
+      <label>分类标签</label>
+      <div class="tag-options" id="create-tags"></div>
+    </div>
+    <div>
+      <label>标题</label>
+      <input id="create-title" type="text" placeholder="简要描述你的问题或分享主题">
+    </div>
+    <div>
+      <label>正文</label>
+      <textarea id="create-body" placeholder="详细描述你的问题，或分享你的经验..."></textarea>
+    </div>
+    <button class="btn btn-primary btn-block" onclick="submitFromModal()">发布</button>
+  </div>
+</div>
+
+<!-- 详情弹窗 -->
+<div id="detail-modal">
+  <div class="modal-card">
+    <button class="modal-close" onclick="closeDetail()">✕</button>
     <div id="detail-content"></div>
   </div>
 </div>
 
 <script>
-// ===================== 配置区 =====================
-// ⚠️ 部署前请修改以下配置
-// API_BASE_URL: 中转服务地址，详见部署说明
-// SCF 云函数地址（HTML 托管在 COS，跨域请求 API）
+// ===================== 配置 =====================
 const API_BASE_URL = 'https://1258029670-gz6w6pca59.ap-guangzhou.tencentscf.com/api';
 
 const CONFIG = {
   appToken:   'NMvdbg8rUaqL53stgRuc13iDn9d',
-  mainTable:  'tbl3jDKRPoQOaXM2',   // 内容主表
-  answerTable:'tbl1uEHdL635o0pY',    // 回答表
-  scoreTable: 'tblKxQwDNatv4ycs',    // 成员积分表
-  admins:     ['赵一丹', '陈子昂', '佘紫薇']  // 运营权限成员
+  mainTable:  'tbl3jDKRPoQOaXM2',
+  answerTable:'tbl1uEHdL635o0pY',
+  scoreTable: 'tblKxQwDNatv4ycs',
 };
 
-// 字段名映射（飞书 Excel 导入会自动在字段名后加 \n(说明)，必须用实际字段名）
+// 运营组三人（看置顶/隐藏）
+const ADMINS = ['赵一丹', '陈子昂', '佘紫薇'];
+
+// 字段名映射
 const F_MAIN = {
   contentId: '内容ID\n(自动填写)',
   contentType:'内容类型\n(必填)',
@@ -293,39 +333,37 @@ const F_ANSWER = {
   body:      '详细回答内容\n建议附上截图说明'
 };
 
-const F_SCORE = {
-  name:          '【成员信息】：姓名：真实姓名',
-  group:         '【成员信息】：所属小组：第一~第七组',
-  role:          '【成员信息】：角色：组长 | 组员',
-  askCount:      '【行为次数（手动|运营每周更新）】：提问次数：每提交1条问题 记1次',
-  answerCount:   '【行为次数（手动|运营每周更新）】：回答次数：每提交1条回答 记1次（积分+2）',
-  shareCount:    '【行为次数（手动|运营每周更新）】：经验分享次数：每发布1条经验 记1次（积分+3）',
-  likedCount:    '【行为次数（手动|运营每周更新）】：被点赞次数：被点赞1次记1 运营每周统计',
-  totalScore:    '【总积分（公式自动）】：总积分 (提问×1+回答×2+分享×3+点赞×1)：E×1+F×2+G×3+H×1 公式自动计算',
-  askRank:       '【本期排名（运营填写）】：提问榜 排名：按总积分降序 每周运营填写',
-  answerRank:    '【本期排名（运营填写）】：回答榜 排名：按回答次数降序 每周运营填写'
-};
-
-// 分类标签选项
+// 分类标签：提问与回答8个，经验分享6个
 const TAGS = {
   '提问与回答': ['🛠️ 工具使用', '🤖 Agent/工作流', '📝 提示词工程', '🔗 API/集成', '📊 数据分析', '🎨 多模态/图像', '🚀 产品规划', '📖 其他'],
-  '经验分享': ['💡 工具技巧', '🔧 踩坑记录', '📖 资源推荐', '🤖 提示词分享', '🔗 工作流分享', '🚀 产品经验', '📌 其他']
+  '经验分享': ['💡 工具技巧', '🔧 踩坑记录', '📖 资源推荐', '🤖 提示词分享', '🔗 工作流分享', '🚀 产品经验']
 };
-// ===================================================
+
+// 模板
+const TEMPLATES = {
+  '提问与回答': {
+    title: '请简要描述你的问题',
+    body: '### 📋 问题背景\n（描述你遇到的场景）\n\n### ❓ 具体问题\n（详细描述你的疑问）\n\n### 🔧 已尝试的方法\n（如果已经尝试过某些方法，请说明）\n\n### 💡 期望得到的帮助\n（描述你希望获得什么样的解答）'
+  },
+  '经验分享': {
+    title: '请简要描述你的经验主题',
+    body: '### 🎯 应用场景\n（描述在什么场景下应用）\n\n### 💡 方法/技巧\n（详细分享你的经验或技巧）\n\n### ✨ 取得效果\n（分享实践后的效果或成果）\n\n### ⚠️ 注意事项\n（有哪些需要注意的地方）'
+  }
+};
 
 // ===================== 全局状态 =====================
-let currentUser = null;   // { name, group }
-let allPosts = [];        // 所有内容
+let currentUser = null;
+let allPosts = [];
+let allAnswers = [];  // { record_id, fields } ，key 为 linkId
+let answersByPost = {};  // postId -> [answer records]
 let currentTab = 'all';
-let currentDetail = null;  // 当前展开的内容
+let currentDetail = null;
+let createMode = '提问与回答';  // 当前打开弹窗的入口类型
 
 // ===================== 身份管理 =====================
 function loadIdentity() {
   const saved = localStorage.getItem('ai_camp_user');
-  if (saved) {
-    currentUser = JSON.parse(saved);
-    return true;
-  }
+  if (saved) { currentUser = JSON.parse(saved); return true; }
   return false;
 }
 
@@ -350,33 +388,243 @@ function initApp() {
   document.getElementById('header-group').textContent = currentUser.group;
   document.getElementById('header-avatar').textContent = currentUser.name[0];
 
-  // 运营权限
-  if (CONFIG.admins.includes(currentUser.name)) {
+  if (ADMINS.includes(currentUser.name)) {
     document.getElementById('export-bar').style.display = 'flex';
   }
 
-  onTypeChange();
-  loadPosts();
+  loadAll();
+}
+
+// ===================== 加载 =====================
+async function loadAll() {
+  await Promise.all([loadPosts(), loadAnswers()]);
   loadRanks();
 }
 
-// ===================== 标签渲染 =====================
-function onTypeChange() {
-  const type = document.getElementById('content-type').value;
-  const tags = TAGS[type] || [];
-  const container = document.getElementById('tag-options');
-  container.innerHTML = '';
-  tags.forEach(t => {
-    const btn = document.createElement('div');
-    btn.className = 'tag-btn';
-    btn.textContent = t;
-    btn.onclick = () => btn.classList.toggle('selected');
-    container.appendChild(btn);
-  });
+async function loadPosts() {
+  try {
+    const data = await apiCall(`/bitable/v1/apps/${CONFIG.appToken}/tables/${CONFIG.mainTable}/records?page_size=200`);
+    if (data.code === 0) {
+      allPosts = (data.data.items || []).map(r => ({ id: r.record_id, ...r.fields }))
+        .filter(p => !p[F_MAIN.hidden] || p[F_MAIN.hidden] === '否');
+      allPosts.sort((a, b) => {
+        if (a[F_MAIN.pinned] === '是' && b[F_MAIN.pinned] !== '是') return -1;
+        if (a[F_MAIN.pinned] !== '是' && b[F_MAIN.pinned] === '是') return 1;
+        return new Date(b[F_MAIN.time] || 0) - new Date(a[F_MAIN.time] || 0);
+      });
+    }
+  } catch(e) { console.error(e); }
+  renderAll();
 }
 
-function getSelectedTags() {
-  return [...document.querySelectorAll('#tag-options .tag-btn.selected')].map(e => e.textContent);
+async function loadAnswers() {
+  try {
+    const data = await apiCall(`/bitable/v1/apps/${CONFIG.appToken}/tables/${CONFIG.answerTable}/records?page_size=200`);
+    if (data.code === 0) {
+      allAnswers = (data.data.items || []).map(r => ({ id: r.record_id, ...r.fields }));
+      // 按 linkId 分组
+      answersByPost = {};
+      allAnswers.forEach(a => {
+        const linkId = a[F_ANSWER.linkId];
+        if (linkId) {
+          if (!answersByPost[linkId]) answersByPost[linkId] = [];
+          answersByPost[linkId].push(a);
+        }
+      });
+    }
+  } catch(e) { console.error(e); }
+}
+
+// ===================== 入口卡片 =====================
+function renderEntryCards() {
+  const container = document.getElementById('entry-cards');
+
+  // 提问与回答 / 经验分享 标签 → 内联表单直显
+  if (currentTab === '提问与回答') {
+    container.className = 'entry-cards single';
+    container.innerHTML = renderInlineForm('提问与回答');
+    return;
+  }
+  if (currentTab === '经验分享') {
+    container.className = 'entry-cards single';
+    container.innerHTML = renderInlineForm('经验分享');
+    return;
+  }
+
+  // 我的 → 不显示入口卡片，只展示下方内容列表
+  if (currentTab === 'mine') {
+    container.innerHTML = '';
+    container.className = 'entry-cards';
+    return;
+  }
+
+  // 全部 → 显示可点击入口卡片
+  container.className = 'entry-cards';
+  const cards = [
+    { mode: '提问与回答', icon: '🙋', title: '发起提问', desc: '遇到问题？在这里提问，大家帮你解答', cls: 'card-q' },
+    { mode: '经验分享', icon: '💡', title: '分享经验', desc: '有好的实践经验？分享出来帮助更多人', cls: 'card-s' }
+  ];
+
+  container.innerHTML = cards.map(c => `
+    <div class="entry-card ${c.cls}" onclick="openCreate('${c.mode}')">
+      <div class="entry-icon">${c.icon}</div>
+      <div class="entry-title">${c.title}</div>
+      <div class="entry-desc">${c.desc}</div>
+    </div>
+  `).join('');
+}
+
+// ===================== 内联表单 =====================
+function renderInlineForm(mode) {
+  const tags = TAGS[mode] || [];
+  const tpl = TEMPLATES[mode];
+  const isExp = mode === '经验分享';
+  const icon = isExp ? '💡' : '🙋';
+
+  return `
+    <div class="inline-form-card" data-mode="${mode}">
+      <div style="text-align:center;">
+        <div class="entry-icon">${icon}</div>
+        <div class="entry-title">${isExp ? '分享经验' : '发起提问'}</div>
+      </div>
+      <div class="form-row">
+        <label>内容类型</label>
+        <select onchange="onInlineTypeChange(this)">
+          <option value="提问与回答" ${mode==='提问与回答'?'selected':''}>❓ 提问与回答</option>
+          <option value="经验分享" ${mode==='经验分享'?'selected':''}>💡 经验分享</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label>分类标签（可多选）</label>
+        <div class="tag-options inline-tags" data-inline-tags>
+          ${tags.map(t => `<div class="tag-btn selected" data-tag="${t}" onclick="this.classList.toggle('selected')">${t}</div>`).join('')}
+        </div>
+      </div>
+      <div class="form-row">
+        <label>标题</label>
+        <input id="inline-title" type="text" value="${escapeHtml(tpl.title)}" placeholder="简要描述你的问题或分享主题">
+      </div>
+      <div class="form-row">
+        <label>正文</label>
+        <textarea id="inline-body" rows="6" placeholder="详细描述...">${tpl.body}</textarea>
+      </div>
+      <div class="form-row" id="ref-link-row" style="${isExp ? '' : 'display:none;'}">
+        <label>📎 参考链接（可选）</label>
+        <input id="inline-ref-desc" type="text" placeholder="链接描述，如：腾讯文档 / 截图说明">
+        <input id="inline-ref-url" type="text" placeholder="粘贴链接地址" style="margin-top:6px;">
+      </div>
+      <button class="btn btn-primary btn-block" onclick="submitInline()">🚀 发布</button>
+    </div>
+  `;
+}
+
+function onInlineTypeChange(sel) {
+  // 直接整表重绘，确保标签、模板、参考链接区域全部同步
+  const newMode = sel.value;
+  const entryCards = document.getElementById('entry-cards');
+  entryCards.innerHTML = renderInlineForm(newMode);
+}
+
+async function submitInline() {
+  const card = document.querySelector('.inline-form-card');
+  const mode = card ? card.getAttribute('data-mode') : '提问与回答';
+  const typeSelect = document.querySelector('.inline-form-card select');
+  const type = typeSelect ? typeSelect.value : mode;
+  const title = (document.getElementById('inline-title') || {}).value || '';
+  const body = (document.getElementById('inline-body') || {}).value || '';
+  const tags = [...document.querySelectorAll('.inline-tags .tag-btn.selected')].map(e => e.dataset.tag);
+
+  // 参考链接
+  const refDesc = (document.getElementById('inline-ref-desc') || {}).value || '';
+  const refUrl = (document.getElementById('inline-ref-url') || {}).value || '';
+
+  if (!title.trim()) { alert('请填写标题'); return; }
+  if (!body.trim()) { alert('请填写正文'); return; }
+
+  // 拼装正文：如有参考链接，追加到正文末尾
+  let finalBody = body.trim();
+  if (refUrl.trim()) {
+    finalBody += '\n\n### 📎 参考链接\n';
+    if (refDesc.trim()) finalBody += `- ${refDesc.trim()}：${refUrl.trim()}\n`;
+    else finalBody += `- ${refUrl.trim()}\n`;
+  }
+
+  const now = new Date().toISOString().replace('T', ' ').slice(0, 16);
+  const fields = {};
+  fields[F_MAIN.contentType] = type;
+  fields[F_MAIN.author] = currentUser.name;
+  fields[F_MAIN.group] = currentUser.group;
+  fields[F_MAIN.time] = now;
+  fields[F_MAIN.tag] = tags.join(', ');
+  fields[F_MAIN.title] = title.trim();
+  fields[F_MAIN.body] = finalBody;
+  fields[F_MAIN.status] = type === '提问与回答' ? '⏳ 待回答' : '📢 已发布';
+  fields[F_MAIN.likes] = '0';
+  fields[F_MAIN.answers] = '0';
+  fields[F_MAIN.pinned] = '否';
+  fields[F_MAIN.hidden] = '否';
+
+  try {
+    const resp = await apiCall(`/bitable/v1/apps/${CONFIG.appToken}/tables/${CONFIG.mainTable}/records`, {
+      method: 'POST',
+      body: JSON.stringify({ fields })
+    });
+    if (resp.code === 0) {
+      // 清空表单
+      const titleEl = document.getElementById('inline-title');
+      const bodyEl = document.getElementById('inline-body');
+      const refDescEl = document.getElementById('inline-ref-desc');
+      const refUrlEl = document.getElementById('inline-ref-url');
+      const tpl = TEMPLATES[type] || TEMPLATES['提问与回答'];
+      if (titleEl) titleEl.value = tpl.title;
+      if (bodyEl) bodyEl.value = tpl.body;
+      if (refDescEl) refDescEl.value = '';
+      if (refUrlEl) refUrlEl.value = '';
+      alert('发布成功！');
+      await loadAll();
+    } else {
+      alert('发布失败：' + (resp.msg || '未知错误'));
+    }
+  } catch(e) {
+    alert('网络错误，请重试');
+  }
+}
+
+// ===================== 创建弹窗 =====================
+function openCreate(mode) {
+  createMode = mode;
+  const modal = document.getElementById('create-modal');
+  document.getElementById('create-modal-title').textContent = mode === '提问与回答' ? '🙋 发起提问' : '💡 分享经验';
+  document.getElementById('create-content-type').value = mode;
+  
+  // 加载模板
+  const tpl = TEMPLATES[mode];
+  document.getElementById('create-title').value = tpl.title;
+  document.getElementById('create-body').value = tpl.body;
+  
+  onCreateTypeChange();
+  modal.style.display = 'block';
+}
+
+function closeCreate() {
+  document.getElementById('create-modal').style.display = 'none';
+}
+
+function onCreateTypeChange() {
+  const type = document.getElementById('create-content-type').value;
+  const tags = TAGS[type] || [];
+  const container = document.getElementById('create-tags');
+  container.innerHTML = tags.map(t => `
+    <div class="tag-btn selected" data-tag="${t}" onclick="this.classList.toggle('selected')">${t}</div>
+  `).join('');
+}
+
+function getCreateSelectedTags() {
+  return [...document.querySelectorAll('#create-tags .tag-btn.selected')].map(e => e.dataset.tag);
+}
+
+function getCreateSelectedType() {
+  return document.getElementById('create-content-type').value;
 }
 
 // ===================== Tab 切换 =====================
@@ -384,102 +632,15 @@ function switchTab(tab, el) {
   currentTab = tab;
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   el.classList.add('active');
+  renderAll();
+}
+
+// ===================== 渲染 =====================
+function renderAll() {
+  renderEntryCards();
   renderCards();
 }
 
-// ===================== API 调用（通过中转服务） =====================
-async function apiCall(endpoint, options = {}) {
-  const url = API_BASE_URL + endpoint;
-  const resp = await fetch(url, {
-    ...options,
-    headers: { 'Content-Type': 'application/json', ...options.headers }
-  });
-  return resp.json();
-}
-
-// 获取 tenant_access_token（由中转服务处理）
-async function getToken() {
-  // 中转服务会自动处理 token，前端不需要知道 App Secret
-  // 这里只是触发一次请求，让中转服务刷新 token
-  return true;
-}
-
-// ===================== 加载数据 =====================
-async function loadPosts() {
-  try {
-    const data = await apiCall(`/bitable/v1/apps/${CONFIG.appToken}/tables/${CONFIG.mainTable}/records?page_size=200`);
-    if (data.code === 0) {
-      allPosts = data.data.items.map(r => ({
-        id: r.record_id,
-        ...r.fields
-      })).filter(p => !p[F_MAIN.hidden] || p[F_MAIN.hidden] === '否');
-      // 置顶排序
-      allPosts.sort((a, b) => {
-        if (a[F_MAIN.pinned] === '是' && b[F_MAIN.pinned] !== '是') return -1;
-        if (a[F_MAIN.pinned] !== '是' && b[F_MAIN.pinned] === '是') return 1;
-        return new Date(b[F_MAIN.time] || 0) - new Date(a[F_MAIN.time] || 0);
-      });
-      renderCards();
-    } else {
-      console.error('加载失败', data);
-    }
-  } catch (e) {
-    console.error(e);
-    document.getElementById('card-list').innerHTML = '<div class="empty">⚠️ 加载失败，请检查网络连接或中转服务配置</div>';
-  }
-}
-
-async function loadRanks() {
-  // 从 allPosts 本地计算排行榜
-  // 提问榜
-  const qRank = {};
-  allPosts.filter(p => p[F_MAIN.contentType] === '提问与回答').forEach(p => {
-    qRank[p[F_MAIN.author]] = (qRank[p[F_MAIN.author]] || 0) + 1;
-  });
-  renderRank('rank-question', qRank);
-
-  // 回答榜（需要加载回答数据）
-  try {
-    const data = await apiCall(`/bitable/v1/apps/${CONFIG.appToken}/tables/${CONFIG.answerTable}/records?page_size=200`);
-    if (data.code === 0) {
-      const aRank = {};
-        data.data.items.forEach(r => {
-          const name = r.fields[F_ANSWER.author];
-          aRank[name] = (aRank[name] || 0) + 1;
-        });
-      renderRank('rank-answer', aRank);
-    }
-  } catch(e) { console.error(e); }
-
-  // 分享榜
-  const sRank = {};
-  allPosts.filter(p => p[F_MAIN.contentType] === '经验分享').forEach(p => {
-    sRank[p[F_MAIN.author]] = (sRank[p[F_MAIN.author]] || 0) + 1;
-  });
-  renderRank('rank-share', sRank);
-
-  // 小组积分
-  const gRank = {};
-  allPosts.forEach(p => {
-    const g = p[F_MAIN.group];
-    gRank[g] = (gRank[g] || 0) + (p[F_MAIN.contentType] === '经验分享' ? 3 : 1);
-  });
-  renderRank('rank-group', gRank, true);
-}
-
-function renderRank(elId, rankObj, isGroup) {
-  const el = document.getElementById(elId);
-  const sorted = Object.entries(rankObj).sort((a,b) => b[1] - a[1]).slice(0, 3);
-  el.innerHTML = sorted.map(([name, score], i) => `
-    <div class="rank-item">
-      <div class="rank-num ${i===0?'gold':i===1?'silver':i===2?'bronze':''}">${i+1}</div>
-      <div class="rank-name">${name}</div>
-      <div class="rank-score">${score}</div>
-    </div>
-  `).join('') || '<div style="color:#9ca3af;font-size:13px;">暂无数据</div>';
-}
-
-// ===================== 渲染卡片 =====================
 function renderCards() {
   let posts = [...allPosts];
   if (currentTab === '提问与回答') posts = posts.filter(p => p[F_MAIN.contentType] === '提问与回答');
@@ -491,7 +652,17 @@ function renderCards() {
     container.innerHTML = '<div class="empty"><div class="icon">📭</div>暂无内容，来发第一条吧！</div>';
     return;
   }
-  container.innerHTML = posts.map(p => renderCard(p)).join('');
+
+  container.innerHTML = posts.map(p => {
+    const html = renderCard(p);
+    // 如果有回答，追加回答区域
+    const answers = answersByPost[p.id] || [];
+    const isQ = p[F_MAIN.contentType] === '提问与回答';
+    if (isQ && answers.length > 0) {
+      return html.replace('</div>', renderAnswersInline(answers) + '</div>');
+    }
+    return html;
+  }).join('');
 }
 
 function renderCard(p) {
@@ -500,66 +671,56 @@ function renderCard(p) {
   const badgeText = isQ ? '❓ 提问' : '💡 分享';
   const pinnedTag = p[F_MAIN.pinned] && p[F_MAIN.pinned] !== '否' ? '<span class="pinned-tag">📌 置顶</span>' : '';
   const pinnedClass = p[F_MAIN.pinned] && p[F_MAIN.pinned] !== '否' ? 'pinned' : '';
+  const tags = (p[F_MAIN.tag] || '').split(',').filter(Boolean).map(t => `<span class="card-tag">${t.trim()}</span>`).join('');
+  const answerCount = parseInt(p[F_MAIN.answers]) || 0;
+  const isAdmin = ADMINS.includes(currentUser.name);
 
   return `
-    <div class="content-card ${pinnedClass}" onclick="openDetail('${p.id}')">
+    <div class="content-card ${pinnedClass}" id="card-${p.id}">
       <div class="card-top">
         <span class="type-badge ${badgeClass}">${badgeText}</span>
-        <div class="card-title">${escapeHtml(p[F_MAIN.title] || '')} ${pinnedTag}</div>
+        <div class="card-title" onclick="openDetail('${p.id}')">${escapeHtml(p[F_MAIN.title] || '')} ${pinnedTag}</div>
       </div>
       <div class="card-meta">👤 ${p[F_MAIN.author]} · ${p[F_MAIN.group]} · 🕐 ${formatTime(p[F_MAIN.time])}</div>
-      <div class="card-body">${escapeHtml(truncate(p[F_MAIN.body] || '', 120))}</div>
-      <div class="card-actions" onclick="event.stopPropagation()">
-        <button class="like-btn ${hasLiked(p.id)?'liked':''}" onclick="likePost('${p.id}')">👍 ${p[F_MAIN.likes] || 0}</button>
-        ${isQ ? `<span class="answer-count" onclick="openDetail('${p.id}')">💬 ${p[F_MAIN.answers] || 0} 条回答</span>` : ''}
-        ${CONFIG.admins.includes(currentUser.name) ? `
-          <button class="op-btn op-pin" onclick="togglePin('${p.id}', ${p[F_MAIN.pinned] && p[F_MAIN.pinned] !== '否'})">${p[F_MAIN.pinned] && p[F_MAIN.pinned] !== '否'?'取消置顶':'置顶'}</button>
-          <button class="op-btn op-hide" onclick="toggleHide('${p.id}', true)">隐藏</button>
-        ` : ''}
+      <div class="card-body">${escapeHtml(p[F_MAIN.body] || '')}</div>
+      ${tags ? '<div>' + tags + '</div>' : ''}
+      <div class="card-actions">
+        <button class="like-btn ${hasLiked(p.id)?'liked':''}" onclick="event.stopPropagation();likePost('${p.id}')">👍 ${p[F_MAIN.likes] || 0}</button>
+        ${isQ ? `<span class="answer-count" onclick="openDetail('${p.id}')">💬 ${answerCount} 条回答</span>` : ''}
+        ${isAdmin ? `<button class="op-btn op-pin" onclick="event.stopPropagation();togglePin('${p.id}')">${p[F_MAIN.pinned]&&p[F_MAIN.pinned]!=='否'?'取消置顶':'📌 置顶'}</button>` : ''}
+        ${isAdmin ? `<button class="op-btn op-hide" onclick="event.stopPropagation();toggleHide('${p.id}')">隐藏</button>` : ''}
+        ${isQ ? `<button class="btn btn-sm btn-ghost" onclick="event.stopPropagation();openDetail('${p.id}')">💬 回答</button>` : ''}
       </div>
     </div>
   `;
 }
 
-// ===================== 详情/回答 =====================
-async function openDetail(id) {
+function renderAnswersInline(answers) {
+  return `
+    <div class="answers-inline">
+      <div style="font-size:13px;font-weight:600;color:var(--gray-700);margin-bottom:8px;">💬 回答（${answers.length}）</div>
+      ${answers.map(a => `
+        <div class="answer-item">
+          <div class="answer-meta">👤 ${a[F_ANSWER.author]} · ${a[F_ANSWER.group]} · 🕐 ${formatTime(a[F_ANSWER.time])}</div>
+          <div class="answer-body">${escapeHtml(a[F_ANSWER.body] || '')}</div>
+          ${a[F_ANSWER.refUrl] ? `<div class="answer-ref">📎 <a href="${escapeHtml(a[F_ANSWER.refUrl])}" target="_blank">${escapeHtml(a[F_ANSWER.refDesc]||'参考资料')}</a></div>` : ''}
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+// ===================== 详情弹窗 =====================
+function openDetail(id) {
   const post = allPosts.find(p => p.id === id);
   if (!post) return;
   currentDetail = post;
-
-  let answersHtml = '';
-  if (post[F_MAIN.contentType] === '提问与回答') {
-    // 加载回答
-    try {
-      const data = await apiCall(`/bitable/v1/apps/${CONFIG.appToken}/tables/${CONFIG.answerTable}/records?page_size=200`);
-      if (data.code === 0) {
-        const answers = data.data.items
-          .filter(r => r.fields[F_ANSWER.linkId] === id)
-          .map(r => ({ id: r.record_id, ...r.fields }));
-        answersHtml = `<div class="answers-section">
-          <h4 style="margin-bottom:12px;">💬 回答（${answers.length}）</h4>
-          ${answers.map(a => `
-            <div class="answer-item">
-              <div class="answer-meta">👤 ${a[F_ANSWER.author]} · ${a[F_ANSWER.group]} · 🕐 ${formatTime(a[F_ANSWER.time])}</div>
-              <div class="answer-body">${escapeHtml(a[F_ANSWER.body] || '')}</div>
-              ${a[F_ANSWER.refUrl] ? `<div class="answer-ref">📎 <a href="${a[F_ANSWER.refUrl]}" target="_blank">${a[F_ANSWER.refDesc]||'参考资料'}</a></div>` : ''}
-              <div style="margin-top:8px;">
-                <button class="like-btn ${hasLiked(a.id)?'liked':''}" onclick="likeAnswer('${a.id}')">👍 ${a[F_ANSWER.likes]||0}</button>
-              </div>
-            </div>
-          `).join('')}
-          <div class="reply-box">
-            <textarea placeholder="写下你的回答..." id="reply-input"></textarea>
-            <button class="btn btn-primary btn-sm" onclick="submitAnswer('${id}')">提交回答</button>
-          </div>
-        </div>`;
-      }
-    } catch(e) { console.error(e); }
-  }
+  const answers = answersByPost[id] || [];
+  const isQ = post[F_MAIN.contentType] === '提问与回答';
 
   document.getElementById('detail-content').innerHTML = `
-    <div class="type-badge ${post[F_MAIN.contentType]==='提问与回答'?'badge-q':'badge-s'}" style="margin-bottom:12px;display:inline-block;">
-      ${post[F_MAIN.contentType]==='提问与回答'?'❓ 提问':'💡 分享'}
+    <div class="type-badge ${isQ?'badge-q':'badge-s'}" style="margin-bottom:12px;display:inline-block;">
+      ${isQ?'❓ 提问':'💡 分享'}
     </div>
     <h2 style="margin-bottom:8px;">${escapeHtml(post[F_MAIN.title]||'')}</h2>
     <div class="card-meta">👤 ${post[F_MAIN.author]} · ${post[F_MAIN.group]} · 🕐 ${formatTime(post[F_MAIN.time])} · 分类：${post[F_MAIN.tag]||'无'}</div>
@@ -567,7 +728,22 @@ async function openDetail(id) {
     <div class="card-actions" style="margin-bottom:16px;">
       <button class="like-btn ${hasLiked(post.id)?'liked':''}" onclick="likePost('${post.id}')">👍 ${post[F_MAIN.likes]||0}</button>
     </div>
-    ${answersHtml}
+    ${isQ ? `
+      <div class="answers-section" style="border-top:1px solid var(--gray-100);padding-top:14px;">
+        <h4 style="margin-bottom:12px;">💬 回答（${answers.length}）</h4>
+        ${answers.map(a => `
+          <div class="answer-item" style="padding:10px 0;border-bottom:1px solid var(--gray-100);">
+            <div style="font-size:12px;color:var(--gray-500);margin-bottom:4px;">👤 ${a[F_ANSWER.author]} · ${a[F_ANSWER.group]} · 🕐 ${formatTime(a[F_ANSWER.time])}</div>
+            <div style="font-size:14px;line-height:1.6;white-space:pre-wrap;">${escapeHtml(a[F_ANSWER.body]||'')}</div>
+            ${a[F_ANSWER.refUrl] ? `<div style="font-size:12px;color:var(--primary);margin-top:4px;">📎 <a href="${escapeHtml(a[F_ANSWER.refUrl])}" target="_blank">${escapeHtml(a[F_ANSWER.refDesc]||'参考资料')}</a></div>` : ''}
+          </div>
+        `).join('')}
+        <div class="reply-box">
+          <textarea placeholder="写下你的回答..." id="reply-input"></textarea>
+          <button class="btn btn-primary btn-sm" onclick="submitAnswer('${id}')">提交回答</button>
+        </div>
+      </div>
+    ` : ''}
   `;
   document.getElementById('detail-modal').style.display = 'block';
 }
@@ -578,11 +754,11 @@ function closeDetail() {
 }
 
 // ===================== 提交 =====================
-async function submitPost() {
-  const type = document.getElementById('content-type').value;
-  const title = document.getElementById('post-title').value.trim();
-  const body = document.getElementById('post-body').value.trim();
-  const tags = getSelectedTags();
+async function submitFromModal() {
+  const type = getCreateSelectedType();
+  const title = document.getElementById('create-title').value.trim();
+  const body = document.getElementById('create-body').value.trim();
+  const tags = getCreateSelectedTags();
   if (!title) { alert('请填写标题'); return; }
   if (!body) { alert('请填写正文'); return; }
 
@@ -608,10 +784,10 @@ async function submitPost() {
     });
     if (resp.code === 0) {
       alert('发布成功！');
-      clearPost();
-      loadPosts();
+      closeCreate();
+      await loadAll();
     } else {
-      alert('发布失败：' + resp.msg);
+      alert('发布失败：' + (resp.msg || '未知错误'));
     }
   } catch(e) {
     alert('网络错误，请重试');
@@ -640,8 +816,9 @@ async function submitAnswer(postId) {
       // 更新主表回答数
       const post = allPosts.find(p => p.id === postId);
       if (post) {
+        const curCount = parseInt(post[F_MAIN.answers]) || 0;
         const updateFields = {};
-        updateFields[F_MAIN.answers] = (post[F_MAIN.answers] || 0) + 1;
+        updateFields[F_MAIN.answers] = String(curCount + 1);
         await apiCall(`/bitable/v1/apps/${CONFIG.appToken}/tables/${CONFIG.mainTable}/records/${postId}`, {
           method: 'PUT',
           body: JSON.stringify({ fields: updateFields })
@@ -649,9 +826,9 @@ async function submitAnswer(postId) {
       }
       alert('回答成功！');
       closeDetail();
-      loadPosts();
+      await loadAll();
     } else {
-      alert('提交失败：' + resp.msg);
+      alert('提交失败：' + (resp.msg || '未知错误'));
     }
   } catch(e) {
     alert('网络错误，请重试');
@@ -662,14 +839,9 @@ async function submitAnswer(postId) {
 function getLikedSet() {
   return new Set(JSON.parse(localStorage.getItem('liked_' + currentUser.name) || '[]'));
 }
-
-function hasLiked(id) {
-  return getLikedSet().has(id);
-}
-
+function hasLiked(id) { return getLikedSet().has(id); }
 function markLiked(id) {
-  const s = getLikedSet();
-  s.add(id);
+  const s = getLikedSet(); s.add(id);
   localStorage.setItem('liked_' + currentUser.name, JSON.stringify([...s]));
 }
 
@@ -683,62 +855,77 @@ async function likePost(id) {
     const updateFields = {};
     updateFields[F_MAIN.likes] = String(newCount);
     await apiCall(`/bitable/v1/apps/${CONFIG.appToken}/tables/${CONFIG.mainTable}/records/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify({ fields: updateFields })
+      method: 'PUT', body: JSON.stringify({ fields: updateFields })
     });
     post[F_MAIN.likes] = String(newCount);
     renderCards();
-    if (currentDetail && currentDetail.id === id) openDetail(id);
-  } catch(e) { console.error(e); }
-}
-
-async function likeAnswer(id) {
-  if (hasLiked(id)) return;
-  markLiked(id);
-  try {
-    // 需要先查出当前点赞数
-    const resp = await apiCall(`/bitable/v1/apps/${CONFIG.appToken}/tables/${CONFIG.answerTable}/records/${id}`);
-    if (resp.code === 0) {
-      const newCount = (parseInt(resp.data.fields[F_ANSWER.likes]) || 0) + 1;
-      const updateFields = {};
-      updateFields[F_ANSWER.likes] = String(newCount);
-      await apiCall(`/bitable/v1/apps/${CONFIG.appToken}/tables/${CONFIG.answerTable}/records/${id}`, {
-        method: 'PUT',
-        body: JSON.stringify({ fields: updateFields })
-      });
-      if (currentDetail) openDetail(currentDetail.id);
-    }
   } catch(e) { console.error(e); }
 }
 
 // ===================== 运营操作 =====================
-async function togglePin(id, current) {
+async function togglePin(id) {
+  if (!ADMINS.includes(currentUser.name)) return;
+  const post = allPosts.find(p => p.id === id);
+  if (!post) return;
+  const isPinned = post[F_MAIN.pinned] === '是';
   try {
     const updateFields = {};
-    updateFields[F_MAIN.pinned] = current ? '否' : '是';
+    updateFields[F_MAIN.pinned] = isPinned ? '否' : '是';
     await apiCall(`/bitable/v1/apps/${CONFIG.appToken}/tables/${CONFIG.mainTable}/records/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify({ fields: updateFields })
+      method: 'PUT', body: JSON.stringify({ fields: updateFields })
     });
-    closeDetail();
-    loadPosts();
+    await loadAll();
   } catch(e) { console.error(e); }
 }
 
-async function toggleHide(id, hide) {
+async function toggleHide(id) {
+  if (!ADMINS.includes(currentUser.name)) return;
   try {
     const updateFields = {};
-    updateFields[F_MAIN.hidden] = hide ? '是' : '否';
+    updateFields[F_MAIN.hidden] = '是';
     await apiCall(`/bitable/v1/apps/${CONFIG.appToken}/tables/${CONFIG.mainTable}/records/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify({ fields: updateFields })
+      method: 'PUT', body: JSON.stringify({ fields: updateFields })
     });
-    closeDetail();
-    loadPosts();
+    await loadAll();
   } catch(e) { console.error(e); }
 }
 
-// ===================== 导出 CSV =====================
+// ===================== 排行榜 =====================
+function loadRanks() {
+  const qRank = {}; const sRank = {}; const gScore = {};
+  allPosts.forEach(p => {
+    const author = p[F_MAIN.author];
+    const group = p[F_MAIN.group];
+    if (p[F_MAIN.contentType] === '提问与回答') qRank[author] = (qRank[author] || 0) + 1;
+    if (p[F_MAIN.contentType] === '经验分享') sRank[author] = (sRank[author] || 0) + 1;
+    gScore[group] = (gScore[group] || 0) + (p[F_MAIN.contentType] === '经验分享' ? 3 : 1);
+  });
+  renderRank('rank-question', qRank);
+  renderRank('rank-share', sRank);
+  renderRank('rank-group', gScore);
+
+  // 回答榜从答案数据算
+  const aRank = {};
+  allAnswers.forEach(a => {
+    const name = a[F_ANSWER.author];
+    if (name) aRank[name] = (aRank[name] || 0) + 1;
+  });
+  renderRank('rank-answer', aRank);
+}
+
+function renderRank(elId, obj) {
+  const el = document.getElementById(elId);
+  const sorted = Object.entries(obj).sort((a,b) => b[1] - a[1]).slice(0, 3);
+  el.innerHTML = sorted.map(([name, score], i) => `
+    <div class="rank-item">
+      <div class="rank-num ${i===0?'gold':i===1?'silver':i===2?'bronze':''}">${i+1}</div>
+      <div class="rank-name">${name}</div>
+      <div class="rank-score">${score}</div>
+    </div>
+  `).join('') || '<div style="color:#9ca3af;font-size:13px;">暂无数据</div>';
+}
+
+// ===================== CSV 导出 =====================
 function exportCSV() {
   const rows = [['内容类型','发布人','所属小组','标题','分类标签','发布时间','点赞数','回答数','状态']];
   allPosts.forEach(p => {
@@ -752,33 +939,29 @@ function exportCSV() {
   a.click();
 }
 
-// ===================== 工具函数 =====================
-function clearPost() {
-  document.getElementById('post-title').value = '';
-  document.getElementById('post-body').value = '';
-  document.querySelectorAll('#tag-options .tag-btn.selected').forEach(e => e.classList.remove('selected'));
-}
-
+// ===================== 工具 =====================
 function formatTime(iso) {
   if (!iso) return '';
   const d = new Date(iso);
-  return `${d.getMonth()+1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}`;
+  return `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
 }
-
-function truncate(str, len) {
-  if (!str) return '';
-  return str.length > len ? str.slice(0, len) + '...' : str;
-}
-
 function escapeHtml(str) {
   if (!str) return '';
   return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
-// ===================== 启动 =====================
-if (loadIdentity()) {
-  initApp();
+// ===================== API =====================
+async function apiCall(endpoint, options = {}) {
+  const url = API_BASE_URL + endpoint;
+  const resp = await fetch(url, {
+    ...options,
+    headers: { 'Content-Type': 'application/json', ...options.headers }
+  });
+  return resp.json();
 }
+
+// ===================== 启动 =====================
+if (loadIdentity()) { initApp(); }
 </script>
 </body>
 </html>
