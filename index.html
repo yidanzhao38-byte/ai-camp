@@ -236,7 +236,7 @@ body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
     <!-- Tab -->
     <div class="tabs">
       <div class="tab active" onclick="switchTab('all', this)">全部</div>
-      <div class="tab" onclick="switchTab('提问与回答', this)">❓ 提问与回答</div>
+      <div class="tab" onclick="switchTab('提问求助', this)">❓ 提问求助</div>
       <div class="tab" onclick="switchTab('经验分享', this)">💡 经验分享</div>
       <div class="tab" onclick="switchTab('mine', this)">我的</div>
     </div>
@@ -262,7 +262,7 @@ body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
     <div>
       <label>内容类型</label>
       <select id="create-content-type" onchange="onCreateTypeChange()">
-        <option value="提问与回答">❓ 提问与回答</option>
+        <option value="提问求助">❓ 提问求助</option>
         <option value="经验分享">💡 经验分享</option>
       </select>
     </div>
@@ -306,42 +306,42 @@ const ADMINS = ['赵一丹', '陈子昂', '佘紫薇'];
 
 // 字段名映射
 const F_MAIN = {
-  contentId: '内容ID\n(自动填写)',
-  contentType:'内容类型\n(必填)',
-  tag:       '分类标签\n(必填)',
-  author:    '发布人\n(必填)',
-  time:      '发布时间\n(自动)',
-  answers:   '回答数\n(仅提问类)',
-  group:     '所属小组\n(必填)',
-  pinned:    '是否置顶\n(运营操作)',
-  hidden:    '是否隐藏\n(运营操作)',
-  title:     '标题\n(必填)',
-  body:      '正文内容\n(必填)',
-  likes:     '点赞数\n(系统记录)',
-  status:    '状态\n(必填)'
+  contentId: '内容ID',
+  contentType:'内容类型',
+  tag:       '分类标签',
+  author:    '发布人',
+  time:      '发布时间',
+  answers:   '回答数',
+  group:     '所属小组',
+  pinned:    '是否置顶',
+  hidden:    '是否隐藏',
+  title:     '标题',
+  body:      '正文内容',
+  likes:     '点赞数',
+  status:    '状态'
 };
 
 const F_ANSWER = {
-  likes:     '初始填0',
-  linkId:    '填写对应的内容ID\n如：C001',
-  author:    '填写真实姓名',
-  time:      '格式：2026-06-08 10：00',
-  group:     '第一组~第七组\n或运营组',
-  answerId:  '格式：A001|A002…',
-  refDesc:   '简述资料内容\n方便快速判断',
-  refUrl:    '粘贴参考资料URL\n可填多个，换行分隔',
-  body:      '详细回答内容\n建议附上截图说明'
+  likes:     '点赞数',
+  linkId:    '关联内容ID',
+  author:    '回答者',
+  time:      '回答时间',
+  group:     '所属小组',
+  answerId:  '回答ID',
+  refDesc:   '资料简述',
+  refUrl:    '参考资料URL',
+  body:      '回答内容'
 };
 
-// 分类标签：提问与回答8个，经验分享6个
+// 分类标签：提问求助7个，经验分享5个（匹配飞书多维表格选项）
 const TAGS = {
-  '提问与回答': ['🛠️ 工具使用', '🤖 Agent/工作流', '📝 提示词工程', '🔗 API/集成', '📊 数据分析', '🎨 多模态/图像', '🚀 产品规划', '📖 其他'],
-  '经验分享': ['💡 工具技巧', '🔧 踩坑记录', '📖 资源推荐', '🤖 提示词分享', '🔗 工作流分享', '🚀 产品经验']
+  '提问求助': ['💬 提示词设计', '🤖 Agent构建', '📄 文档/文字处理', '📊 数据处理与计算', '🔗 工具使用与连接', '🎨 产品设计与规划', '❓ 其他'],
+  '经验分享': ['💡 工具技巧', '🔧 踩坑记录', '📖 资源推荐', '🤖 提示词分享', '🔗 工作流分享']
 };
 
 // 模板
 const TEMPLATES = {
-  '提问与回答': {
+  '提问求助': {
     title: '请简要描述你的问题',
     body: '### 📋 问题背景\n（描述你遇到的场景）\n\n### ❓ 具体问题\n（详细描述你的疑问）\n\n### 🔧 已尝试的方法\n（如果已经尝试过某些方法，请说明）\n\n### 💡 期望得到的帮助\n（描述你希望获得什么样的解答）'
   },
@@ -358,7 +358,7 @@ let allAnswers = [];  // { record_id, fields } ，key 为 linkId
 let answersByPost = {};  // postId -> [answer records]
 let currentTab = 'all';
 let currentDetail = null;
-let createMode = '提问与回答';  // 当前打开弹窗的入口类型
+let createMode = '提问求助';  // 当前打开弹窗的入口类型
 
 // ===================== 身份管理 =====================
 function loadIdentity() {
@@ -406,10 +406,10 @@ async function loadPosts() {
     const data = await apiCall(`/bitable/v1/apps/${CONFIG.appToken}/tables/${CONFIG.mainTable}/records?page_size=200`);
     if (data.code === 0) {
       allPosts = (data.data.items || []).map(r => ({ id: r.record_id, ...r.fields }))
-        .filter(p => !p[F_MAIN.hidden] || p[F_MAIN.hidden] === '否');
+        .filter(p => !p[F_MAIN.hidden] || p[F_MAIN.hidden] === false);
       allPosts.sort((a, b) => {
-        if (a[F_MAIN.pinned] === '是' && b[F_MAIN.pinned] !== '是') return -1;
-        if (a[F_MAIN.pinned] !== '是' && b[F_MAIN.pinned] === '是') return 1;
+        if (a[F_MAIN.pinned] === true && b[F_MAIN.pinned] !== true) return -1;
+        if (a[F_MAIN.pinned] !== true && b[F_MAIN.pinned] === true) return 1;
         return new Date(b[F_MAIN.time] || 0) - new Date(a[F_MAIN.time] || 0);
       });
     }
@@ -439,10 +439,10 @@ async function loadAnswers() {
 function renderEntryCards() {
   const container = document.getElementById('entry-cards');
 
-  // 提问与回答 / 经验分享 标签 → 内联表单直显
-  if (currentTab === '提问与回答') {
+  // 提问求助 / 经验分享 标签 → 内联表单直显
+  if (currentTab === '提问求助') {
     container.className = 'entry-cards single';
-    container.innerHTML = renderInlineForm('提问与回答');
+    container.innerHTML = renderInlineForm('提问求助');
     return;
   }
   if (currentTab === '经验分享') {
@@ -461,7 +461,7 @@ function renderEntryCards() {
   // 全部 → 显示可点击入口卡片
   container.className = 'entry-cards';
   const cards = [
-    { mode: '提问与回答', icon: '🙋', title: '发起提问', desc: '遇到问题？在这里提问，大家帮你解答', cls: 'card-q' },
+    { mode: '提问求助', icon: '🙋', title: '发起提问', desc: '遇到问题？在这里提问，大家帮你解答', cls: 'card-q' },
     { mode: '经验分享', icon: '💡', title: '分享经验', desc: '有好的实践经验？分享出来帮助更多人', cls: 'card-s' }
   ];
 
@@ -490,7 +490,7 @@ function renderInlineForm(mode) {
       <div class="form-row">
         <label>内容类型</label>
         <select onchange="onInlineTypeChange(this)">
-          <option value="提问与回答" ${mode==='提问与回答'?'selected':''}>❓ 提问与回答</option>
+          <option value="提问求助" ${mode==='提问求助'?'selected':''}>❓ 提问求助</option>
           <option value="经验分享" ${mode==='经验分享'?'selected':''}>💡 经验分享</option>
         </select>
       </div>
@@ -527,7 +527,7 @@ function onInlineTypeChange(sel) {
 
 async function submitInline() {
   const card = document.querySelector('.inline-form-card');
-  const mode = card ? card.getAttribute('data-mode') : '提问与回答';
+  const mode = card ? card.getAttribute('data-mode') : '提问求助';
   const typeSelect = document.querySelector('.inline-form-card select');
   const type = typeSelect ? typeSelect.value : mode;
   const title = (document.getElementById('inline-title') || {}).value || '';
@@ -558,11 +558,11 @@ async function submitInline() {
   fields[F_MAIN.tag] = tags.join(', ');
   fields[F_MAIN.title] = title.trim();
   fields[F_MAIN.body] = finalBody;
-  fields[F_MAIN.status] = type === '提问与回答' ? '⏳ 待回答' : '📢 已发布';
-  fields[F_MAIN.likes] = '0';
-  fields[F_MAIN.answers] = '0';
-  fields[F_MAIN.pinned] = '否';
-  fields[F_MAIN.hidden] = '否';
+  fields[F_MAIN.status] = type === '提问求助' ? '待回答' : '已解决';
+  fields[F_MAIN.likes] = 0;
+  fields[F_MAIN.answers] = 0;
+  fields[F_MAIN.pinned] = false;
+  fields[F_MAIN.hidden] = false;
 
   try {
     const resp = await apiCall(`/bitable/v1/apps/${CONFIG.appToken}/tables/${CONFIG.mainTable}/records`, {
@@ -575,7 +575,7 @@ async function submitInline() {
       const bodyEl = document.getElementById('inline-body');
       const refDescEl = document.getElementById('inline-ref-desc');
       const refUrlEl = document.getElementById('inline-ref-url');
-      const tpl = TEMPLATES[type] || TEMPLATES['提问与回答'];
+      const tpl = TEMPLATES[type] || TEMPLATES['提问求助'];
       if (titleEl) titleEl.value = tpl.title;
       if (bodyEl) bodyEl.value = tpl.body;
       if (refDescEl) refDescEl.value = '';
@@ -596,7 +596,7 @@ async function submitInline() {
 function openCreate(mode) {
   createMode = mode;
   const modal = document.getElementById('create-modal');
-  document.getElementById('create-modal-title').textContent = mode === '提问与回答' ? '🙋 发起提问' : '💡 分享经验';
+  document.getElementById('create-modal-title').textContent = mode === '提问求助' ? '🙋 发起提问' : '💡 分享经验';
   document.getElementById('create-content-type').value = mode;
   
   // 加载模板
@@ -645,7 +645,7 @@ function renderAll() {
 
 function renderCards() {
   let posts = [...allPosts];
-  if (currentTab === '提问与回答') posts = posts.filter(p => p[F_MAIN.contentType] === '提问与回答');
+  if (currentTab === '提问求助') posts = posts.filter(p => p[F_MAIN.contentType] === '提问求助');
   if (currentTab === '经验分享') posts = posts.filter(p => p[F_MAIN.contentType] === '经验分享');
   if (currentTab === 'mine') posts = posts.filter(p => p[F_MAIN.author] === currentUser.name);
 
@@ -659,7 +659,7 @@ function renderCards() {
     const html = renderCard(p);
     // 如果有回答，追加回答区域
     const answers = answersByPost[p.id] || [];
-    const isQ = p[F_MAIN.contentType] === '提问与回答';
+    const isQ = p[F_MAIN.contentType] === '提问求助';
     if (isQ && answers.length > 0) {
       return html.replace('</div>', renderAnswersInline(answers) + '</div>');
     }
@@ -668,11 +668,11 @@ function renderCards() {
 }
 
 function renderCard(p) {
-  const isQ = p[F_MAIN.contentType] === '提问与回答';
+  const isQ = p[F_MAIN.contentType] === '提问求助';
   const badgeClass = isQ ? 'badge-q' : 'badge-s';
   const badgeText = isQ ? '❓ 提问' : '💡 分享';
-  const pinnedTag = p[F_MAIN.pinned] && p[F_MAIN.pinned] !== '否' ? '<span class="pinned-tag">📌 置顶</span>' : '';
-  const pinnedClass = p[F_MAIN.pinned] && p[F_MAIN.pinned] !== '否' ? 'pinned' : '';
+  const pinnedTag = p[F_MAIN.pinned] === true ? '<span class="pinned-tag">📌 置顶</span>' : '';
+  const pinnedClass = p[F_MAIN.pinned] === true ? 'pinned' : '';
   const tags = (p[F_MAIN.tag] || '').split(',').filter(Boolean).map(t => `<span class="card-tag">${t.trim()}</span>`).join('');
   const answerCount = parseInt(p[F_MAIN.answers]) || 0;
   const isAdmin = ADMINS.includes(currentUser.name);
@@ -689,7 +689,7 @@ function renderCard(p) {
       <div class="card-actions">
         <button class="like-btn ${hasLiked(p.id)?'liked':''}" onclick="event.stopPropagation();likePost('${p.id}')">👍 ${p[F_MAIN.likes] || 0}</button>
         ${isQ ? `<span class="answer-count" onclick="openDetail('${p.id}')">💬 ${answerCount} 条回答</span>` : ''}
-        ${isAdmin ? `<button class="op-btn op-pin" onclick="event.stopPropagation();togglePin('${p.id}')">${p[F_MAIN.pinned]&&p[F_MAIN.pinned]!=='否'?'取消置顶':'📌 置顶'}</button>` : ''}
+        ${isAdmin ? `<button class="op-btn op-pin" onclick="event.stopPropagation();togglePin('${p.id}')">${p[F_MAIN.pinned]===true?'取消置顶':'📌 置顶'}</button>` : ''}
         ${isAdmin ? `<button class="op-btn op-hide" onclick="event.stopPropagation();toggleHide('${p.id}')">隐藏</button>` : ''}
         ${isQ ? `<button class="btn btn-sm btn-ghost" onclick="event.stopPropagation();openDetail('${p.id}')">💬 回答</button>` : ''}
       </div>
@@ -718,7 +718,7 @@ function openDetail(id) {
   if (!post) return;
   currentDetail = post;
   const answers = answersByPost[id] || [];
-  const isQ = post[F_MAIN.contentType] === '提问与回答';
+  const isQ = post[F_MAIN.contentType] === '提问求助';
 
   document.getElementById('detail-content').innerHTML = `
     <div class="type-badge ${isQ?'badge-q':'badge-s'}" style="margin-bottom:12px;display:inline-block;">
@@ -773,11 +773,11 @@ async function submitFromModal() {
   fields[F_MAIN.tag] = tags.join(', ');
   fields[F_MAIN.title] = title;
   fields[F_MAIN.body] = body;
-  fields[F_MAIN.status] = type === '提问与回答' ? '⏳ 待回答' : '📢 已发布';
-  fields[F_MAIN.likes] = '0';
-  fields[F_MAIN.answers] = '0';
-  fields[F_MAIN.pinned] = '否';
-  fields[F_MAIN.hidden] = '否';
+  fields[F_MAIN.status] = type === '提问求助' ? '待回答' : '已解决';
+  fields[F_MAIN.likes] = 0;
+  fields[F_MAIN.answers] = 0;
+  fields[F_MAIN.pinned] = false;
+  fields[F_MAIN.hidden] = false;
 
   try {
     const resp = await apiCall(`/bitable/v1/apps/${CONFIG.appToken}/tables/${CONFIG.mainTable}/records`, {
@@ -807,7 +807,7 @@ async function submitAnswer(postId) {
   fields[F_ANSWER.group] = currentUser.group;
   fields[F_ANSWER.time] = now;
   fields[F_ANSWER.body] = body;
-  fields[F_ANSWER.likes] = '0';
+  fields[F_ANSWER.likes] = 0;
 
   try {
     const resp = await apiCall(`/bitable/v1/apps/${CONFIG.appToken}/tables/${CONFIG.answerTable}/records`, {
@@ -820,7 +820,7 @@ async function submitAnswer(postId) {
       if (post) {
         const curCount = parseInt(post[F_MAIN.answers]) || 0;
         const updateFields = {};
-        updateFields[F_MAIN.answers] = String(curCount + 1);
+        updateFields[F_MAIN.answers] = curCount + 1;
         await apiCall(`/bitable/v1/apps/${CONFIG.appToken}/tables/${CONFIG.mainTable}/records/${postId}`, {
           method: 'PUT',
           body: JSON.stringify({ fields: updateFields })
@@ -855,11 +855,11 @@ async function likePost(id) {
   const newCount = (parseInt(post[F_MAIN.likes]) || 0) + 1;
   try {
     const updateFields = {};
-    updateFields[F_MAIN.likes] = String(newCount);
+    updateFields[F_MAIN.likes] = newCount;
     await apiCall(`/bitable/v1/apps/${CONFIG.appToken}/tables/${CONFIG.mainTable}/records/${id}`, {
       method: 'PUT', body: JSON.stringify({ fields: updateFields })
     });
-    post[F_MAIN.likes] = String(newCount);
+    post[F_MAIN.likes] = newCount;
     renderCards();
   } catch(e) { console.error(e); }
 }
@@ -869,10 +869,10 @@ async function togglePin(id) {
   if (!ADMINS.includes(currentUser.name)) return;
   const post = allPosts.find(p => p.id === id);
   if (!post) return;
-  const isPinned = post[F_MAIN.pinned] === '是';
+  const isPinned = post[F_MAIN.pinned] === true;
   try {
     const updateFields = {};
-    updateFields[F_MAIN.pinned] = isPinned ? '否' : '是';
+    updateFields[F_MAIN.pinned] = !isPinned;
     await apiCall(`/bitable/v1/apps/${CONFIG.appToken}/tables/${CONFIG.mainTable}/records/${id}`, {
       method: 'PUT', body: JSON.stringify({ fields: updateFields })
     });
@@ -884,7 +884,7 @@ async function toggleHide(id) {
   if (!ADMINS.includes(currentUser.name)) return;
   try {
     const updateFields = {};
-    updateFields[F_MAIN.hidden] = '是';
+    updateFields[F_MAIN.hidden] = true;
     await apiCall(`/bitable/v1/apps/${CONFIG.appToken}/tables/${CONFIG.mainTable}/records/${id}`, {
       method: 'PUT', body: JSON.stringify({ fields: updateFields })
     });
@@ -898,7 +898,7 @@ function loadRanks() {
   allPosts.forEach(p => {
     const author = p[F_MAIN.author];
     const group = p[F_MAIN.group];
-    if (p[F_MAIN.contentType] === '提问与回答') qRank[author] = (qRank[author] || 0) + 1;
+    if (p[F_MAIN.contentType] === '提问求助') qRank[author] = (qRank[author] || 0) + 1;
     if (p[F_MAIN.contentType] === '经验分享') sRank[author] = (sRank[author] || 0) + 1;
     gScore[group] = (gScore[group] || 0) + (p[F_MAIN.contentType] === '经验分享' ? 3 : 1);
   });
