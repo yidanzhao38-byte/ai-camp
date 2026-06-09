@@ -362,6 +362,9 @@ let answersByPost = {};  // postId -> [answer records]
 let currentTab = 'all';
 let currentDetail = null;
 let createMode = '提问求助';  // 当前打开弹窗的入口类型
+let _apiBusy = false;       // 防止重复提交
+let _cacheTime = 0;         // 数据缓存时间戳
+let _cacheTTL = 8000;       // 缓存有效期 8 秒
 
 // ===================== 身份管理 =====================
 function loadIdentity() {
@@ -400,10 +403,20 @@ function initApp() {
 }
 
 // ===================== 加载 =====================
-async function loadAll() {
+async function loadAll(force = false) {
+  if (!force && Date.now() - _cacheTime < _cacheTTL) { renderAll(); return; }
   await Promise.all([loadPosts(), loadAnswers()]);
+  _cacheTime = Date.now();
   loadRanks();
 }
+
+// 防双击锁：返回 true 表示获取锁成功，false 表示正在忙
+function _acquireLock(msg) {
+  if (_apiBusy) { if (msg) alert(msg); return false; }
+  _apiBusy = true;
+  return true;
+}
+function _releaseLock() { _apiBusy = false; }
 
 async function loadPosts() {
   try {
@@ -530,6 +543,9 @@ function onInlineTypeChange(sel) {
 }
 
 async function submitInline() {
+  if (!_acquireLock('正在提交中，请稍候...')) return;
+  const btn = document.querySelector('.inline-form-card .btn-primary');
+  if (btn) { btn.disabled = true; btn.textContent = '提交中...'; }
   const card = document.querySelector('.inline-form-card');
   const mode = card ? card.getAttribute('data-mode') : '提问求助';
   const typeSelect = document.querySelector('.inline-form-card select');
@@ -585,7 +601,7 @@ async function submitInline() {
       if (refDescEl) refDescEl.value = '';
       if (refUrlEl) refUrlEl.value = '';
       alert('发布成功！');
-      await loadAll();
+      await loadAll(true);
     } else {
       console.error('[发布失败] 飞书返回:', resp);
       alert('发布失败：' + (resp.msg || resp.error || '未知错误'));
@@ -593,6 +609,9 @@ async function submitInline() {
   } catch(e) {
     console.error('[发布异常]', e);
     alert('发布失败：' + (e.message || '网络错误，请重试'));
+  } finally {
+    _releaseLock();
+    if (btn) { btn.disabled = false; btn.textContent = '发布'; }
   }
 }
 
@@ -704,16 +723,22 @@ function renderCard(p) {
 }
 
 function renderAnswersInline(answers) {
+  const postId = answers.length > 0 ? answers[0][F_ANSWER.linkId] : '';
   return `
     <div class="answers-inline">
       <div style="font-size:13px;font-weight:600;color:var(--gray-700);margin-bottom:8px;">💬 回答（${answers.length}）</div>
-      ${answers.map(a => `
+      ${answers.map(a => {
+        const isAnswerAuthor = a[F_ANSWER.author] === currentUser.name;
+        return `
         <div class="answer-item">
-          <div class="answer-meta">👤 ${a[F_ANSWER.author]} · ${a[F_ANSWER.group]} · 🕐 ${formatTime(a[F_ANSWER.time])}</div>
+          <div class="answer-meta">
+            👤 ${a[F_ANSWER.author]} · ${a[F_ANSWER.group]} · 🕐 ${formatTime(a[F_ANSWER.time])}
+            ${isAnswerAuthor ? `<button class="op-btn op-delete" style="float:right;margin-left:8px;" onclick="event.stopPropagation();deleteAnswer('${a.id}','${postId}')">🗑 删除</button>` : ''}
+          </div>
           <div class="answer-body">${escapeHtml(a[F_ANSWER.body] || '')}</div>
           ${a[F_ANSWER.refUrl] ? `<div class="answer-ref">📎 <a href="${escapeHtml(a[F_ANSWER.refUrl])}" target="_blank">${escapeHtml(a[F_ANSWER.refDesc]||'参考资料')}</a></div>` : ''}
         </div>
-      `).join('')}
+      `}).join('')}
     </div>
   `;
 }
@@ -739,13 +764,18 @@ function openDetail(id) {
     ${isQ ? `
       <div class="answers-section" style="border-top:1px solid var(--gray-100);padding-top:14px;">
         <h4 style="margin-bottom:12px;">💬 回答（${answers.length}）</h4>
-        ${answers.map(a => `
+        ${answers.map(a => {
+          const isAnswerAuthor = a[F_ANSWER.author] === currentUser.name;
+          return `
           <div class="answer-item" style="padding:10px 0;border-bottom:1px solid var(--gray-100);">
-            <div style="font-size:12px;color:var(--gray-500);margin-bottom:4px;">👤 ${a[F_ANSWER.author]} · ${a[F_ANSWER.group]} · 🕐 ${formatTime(a[F_ANSWER.time])}</div>
+            <div style="font-size:12px;color:var(--gray-500);margin-bottom:4px;">
+              👤 ${a[F_ANSWER.author]} · ${a[F_ANSWER.group]} · 🕐 ${formatTime(a[F_ANSWER.time])}
+              ${isAnswerAuthor ? `<button class="op-btn op-delete" style="float:right;" onclick="event.stopPropagation();deleteAnswer('${a.id}','${id}')">🗑 删除</button>` : ''}
+            </div>
             <div style="font-size:14px;line-height:1.6;white-space:pre-wrap;">${escapeHtml(a[F_ANSWER.body]||'')}</div>
             ${a[F_ANSWER.refUrl] ? `<div style="font-size:12px;color:var(--primary);margin-top:4px;">📎 <a href="${escapeHtml(a[F_ANSWER.refUrl])}" target="_blank">${escapeHtml(a[F_ANSWER.refDesc]||'参考资料')}</a></div>` : ''}
           </div>
-        `).join('')}
+        `}).join('')}
         <div class="reply-box">
           <textarea placeholder="写下你的回答..." id="reply-input"></textarea>
           <button class="btn btn-primary btn-sm" onclick="submitAnswer('${id}')">提交回答</button>
@@ -763,6 +793,9 @@ function closeDetail() {
 
 // ===================== 提交 =====================
 async function submitFromModal() {
+  if (!_acquireLock('正在提交中，请稍候...')) return;
+  const btn = document.querySelector('#create-modal .btn-primary');
+  if (btn) { btn.disabled = true; btn.textContent = '提交中...'; }
   const type = getCreateSelectedType();
   const title = document.getElementById('create-title').value.trim();
   const body = document.getElementById('create-body').value.trim();
@@ -793,16 +826,22 @@ async function submitFromModal() {
     if (resp.code === 0) {
       alert('发布成功！');
       closeCreate();
-      await loadAll();
+      await loadAll(true);
     } else {
       alert('发布失败：' + (resp.msg || '未知错误'));
     }
   } catch(e) {
     alert('网络错误，请重试');
+  } finally {
+    _releaseLock();
+    if (btn) { btn.disabled = false; btn.textContent = '发布'; }
   }
 }
 
 async function submitAnswer(postId) {
+  if (!_acquireLock('正在提交中，请稍候...')) return;
+  const btn = document.querySelector('.reply-box .btn-primary');
+  if (btn) { btn.disabled = true; btn.textContent = '提交中...'; }
   const body = document.getElementById('reply-input').value.trim();
   if (!body) { alert('请填写回答内容'); return; }
 
@@ -834,12 +873,15 @@ async function submitAnswer(postId) {
       }
       alert('回答成功！');
       closeDetail();
-      await loadAll();
+      await loadAll(true);
     } else {
       alert('提交失败：' + (resp.msg || '未知错误'));
     }
   } catch(e) {
     alert('网络错误，请重试');
+  } finally {
+    _releaseLock();
+    if (btn) { btn.disabled = false; btn.textContent = '提交回答'; }
   }
 }
 
@@ -855,9 +897,11 @@ function markLiked(id) {
 
 async function likePost(id) {
   if (hasLiked(id)) return;
+  if (_apiBusy) return;
+  _apiBusy = true;
   markLiked(id);
   const post = allPosts.find(p => p.id === id);
-  if (!post) return;
+  if (!post) { _releaseLock(); return; }
   const newCount = (parseInt(post[F_MAIN.likes]) || 0) + 1;
   try {
     const updateFields = {};
@@ -868,6 +912,7 @@ async function likePost(id) {
     post[F_MAIN.likes] = newCount;
     renderCards();
   } catch(e) { console.error(e); }
+  _releaseLock();
 }
 
 // ===================== 运营操作 =====================
@@ -882,7 +927,7 @@ async function togglePin(id) {
     await apiCall(`/bitable/v1/apps/${CONFIG.appToken}/tables/${CONFIG.mainTable}/records/${id}`, {
       method: 'PUT', body: JSON.stringify({ fields: updateFields })
     });
-    await loadAll();
+    await loadAll(true);
   } catch(e) { console.error(e); }
 }
 
@@ -894,15 +939,16 @@ async function toggleHide(id) {
     await apiCall(`/bitable/v1/apps/${CONFIG.appToken}/tables/${CONFIG.mainTable}/records/${id}`, {
       method: 'PUT', body: JSON.stringify({ fields: updateFields })
     });
-    await loadAll();
+    await loadAll(true);
   } catch(e) { console.error(e); }
 }
 
 async function deletePost(id) {
+  if (!_acquireLock('正在处理中，请稍候...')) return;
   const post = allPosts.find(p => p.id === id);
-  if (!post) return;
-  if (post[F_MAIN.author] !== currentUser.name) { alert('只能删除自己的帖子'); return; }
-  if (!confirm('确定要删除这条帖子吗？此操作不可撤销。')) return;
+  if (!post) { _releaseLock(); return; }
+  if (post[F_MAIN.author] !== currentUser.name) { alert('只能删除自己的帖子'); _releaseLock(); return; }
+  if (!confirm('确定要删除这条帖子吗？此操作不可撤销。')) { _releaseLock(); return; }
   try {
     // 先删除关联的回答
     const answers = answersByPost[id] || [];
@@ -915,8 +961,29 @@ async function deletePost(id) {
     await apiCall(`/bitable/v1/apps/${CONFIG.appToken}/tables/${CONFIG.mainTable}/records/${id}`, {
       method: 'DELETE'
     });
-    await loadAll();
+    await loadAll(true);
   } catch(e) { console.error('删除失败:', e); alert('删除失败，请重试'); }
+  finally { _releaseLock(); }
+}
+
+async function deleteAnswer(answerId, postId) {
+  if (!_acquireLock('正在处理中，请稍候...')) return;
+  if (!confirm('确定要删除这条回答吗？此操作不可撤销。')) { _releaseLock(); return; }
+  try {
+    await apiCall(`/bitable/v1/apps/${CONFIG.appToken}/tables/${CONFIG.answerTable}/records/${answerId}`, {
+      method: 'DELETE'
+    });
+    // 更新主表回答数
+    const post = allPosts.find(p => p.id === postId);
+    if (post) {
+      const curCount = Math.max(0, (parseInt(post[F_MAIN.answers]) || 0) - 1);
+      await apiCall(`/bitable/v1/apps/${CONFIG.appToken}/tables/${CONFIG.mainTable}/records/${postId}`, {
+        method: 'PUT', body: JSON.stringify({ fields: { [F_MAIN.answers]: curCount } })
+      });
+    }
+    await loadAll(true);
+  } catch(e) { console.error('删除回答失败:', e); alert('删除失败，请重试'); }
+  finally { _releaseLock(); }
 }
 
 // ===================== 排行榜 =====================
