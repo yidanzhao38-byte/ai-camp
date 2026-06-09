@@ -131,7 +131,7 @@ body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
 .card-actions .like-btn.liked { background: #fef2f2; border-color: var(--danger); color: var(--danger); }
 .card-actions .answer-count { font-size: 13px; color: var(--gray-500); cursor: pointer; }
 .card-actions .answer-count:hover { color: var(--primary); }
-.card-actions .op-btn { font-size: 12px; padding: 4px 10px; border-radius: 6px; border: none; cursor: pointer; }
+.op-btn { font-size: 12px; padding: 4px 10px; border-radius: 6px; border: none; cursor: pointer; }
 .op-pin { background: #fef3c7; color: #92400e; }
 .op-hide { background: #fee2e2; color: #991b1b; }
 .op-delete { background: #fce7f3; color: #9d174d; }
@@ -336,6 +336,19 @@ const F_ANSWER = {
   body:      '回答内容'
 };
 
+// 积分表字段映射（成员积分表：tblKxQwDNatv4ycs）
+const F_SCORE = {
+  name:     '姓名',
+  group:    '所属小组',
+  question: '提问次数',
+  answer:   '回答次数',
+  share:    '经验分享次数',
+  liked:    '被点赞次数',
+  total:    '总积分',
+  qRank:    '提问榜排名',
+  aRank:    '回答榜排名'
+};
+
 // 分类标签：提问求助7个，经验分享5个（匹配飞书多维表格选项）
 const TAGS = {
   '提问求助': ['💬 提示词设计', '🤖 Agent构建', '📄 文档/文字处理', '📊 数据处理与计算', '🔗 工具使用与连接', '🎨 产品设计与规划', '❓ 其他'],
@@ -408,6 +421,7 @@ async function loadAll(force = false) {
   await Promise.all([loadPosts(), loadAnswers()]);
   _cacheTime = Date.now();
   loadRanks();
+  syncScores();  // 异步同步积分到后端（不阻塞渲染）
 }
 
 // 防双击锁：返回 true 表示获取锁成功，false 表示正在忙
@@ -911,6 +925,7 @@ async function likePost(id) {
     });
     post[F_MAIN.likes] = newCount;
     renderCards();
+    syncScores();  // 点赞影响积分
   } catch(e) { console.error(e); }
   _releaseLock();
 }
@@ -969,19 +984,30 @@ async function deletePost(id) {
 async function deleteAnswer(answerId, postId) {
   if (!_acquireLock('正在处理中，请稍候...')) return;
   if (!confirm('确定要删除这条回答吗？此操作不可撤销。')) { _releaseLock(); return; }
+
+  // 1. 立即从内存中移除，前端瞬间刷新
+  allAnswers = allAnswers.filter(a => a.id !== answerId);
+  answersByPost[postId] = (answersByPost[postId] || []).filter(a => a.id !== answerId);
+  const post = allPosts.find(p => p.id === postId);
+  if (post) {
+    const curCount = Math.max(0, (parseInt(post[F_MAIN.answers]) || 0) - 1);
+    post[F_MAIN.answers] = curCount;
+  }
+  loadRanks();
+  renderAll();
+
+  // 2. 异步同步到后端
   try {
     await apiCall(`/bitable/v1/apps/${CONFIG.appToken}/tables/${CONFIG.answerTable}/records/${answerId}`, {
       method: 'DELETE'
     });
-    // 更新主表回答数
-    const post = allPosts.find(p => p.id === postId);
     if (post) {
-      const curCount = Math.max(0, (parseInt(post[F_MAIN.answers]) || 0) - 1);
+      const curCount = post[F_MAIN.answers];  // 内存中已更新
       await apiCall(`/bitable/v1/apps/${CONFIG.appToken}/tables/${CONFIG.mainTable}/records/${postId}`, {
         method: 'PUT', body: JSON.stringify({ fields: { [F_MAIN.answers]: curCount } })
       });
     }
-    await loadAll(true);
+    await loadAll(true);    // 最终从后端拉取确认（含 syncScores）
   } catch(e) { console.error('删除回答失败:', e); alert('删除失败，请重试'); }
   finally { _releaseLock(); }
 }
@@ -1019,6 +1045,78 @@ function renderRank(elId, obj) {
       <div class="rank-score">${score}</div>
     </div>
   `).join('') || '<div style="color:#9ca3af;font-size:13px;">暂无数据</div>';
+}
+
+// ========== 积分自动同步到后端映射表 ==========
+async function syncScores() {
+  // 计算每个成员的积分
+  const stats = {}; // { name: { group, question, answer, share, liked } }
+  allPosts.forEach(p => {
+    const name = p[F_MAIN.author];
+    const grp  = p[F_MAIN.group];
+    if (!name) return;
+    if (!stats[name]) stats[name] = { group: grp || '', question: 0, answer: 0, share: 0, liked: 0 };
+    if (p[F_MAIN.contentType] === '提问求助') stats[name].question++;
+    if (p[F_MAIN.contentType] === '经验分享') stats[name].share++;
+    stats[name].liked += parseInt(p[F_MAIN.likes]) || 0;
+  });
+  allAnswers.forEach(a => {
+    const name = a[F_ANSWER.author];
+    if (!name) return;
+    if (!stats[name]) stats[name] = { group: a[F_ANSWER.group] || '', question: 0, answer: 0, share: 0, liked: 0 };
+    stats[name].answer++;
+  });
+
+  // 计算总积分与排名
+  const scored = Object.entries(stats).map(([name, s]) => {
+    const total = s.question * 1 + s.answer * 2 + s.share * 3 + s.liked * 1;
+    return { name, group: s.group, question: s.question, answer: s.answer, share: s.share, liked: s.liked, total };
+  });
+  scored.sort((a, b) => b.total - a.total);
+  scored.forEach((s, i) => { s.qRank = i + 1; });
+  const byAnswer = [...scored].sort((a, b) => b.answer - a.answer);
+  byAnswer.forEach((s, i) => { s.aRank = i + 1; });
+
+  // 获取积分表现有记录，按姓名建索引
+  let existingMap = {};
+  try {
+    const resp = await apiCall(`/bitable/v1/apps/${CONFIG.appToken}/tables/${CONFIG.scoreTable}/records?page_size=200`);
+    if (resp.code === 0 && resp.data && resp.data.items) {
+      resp.data.items.forEach(r => {
+        const f = r.fields || {};
+        if (f[F_SCORE.name]) existingMap[f[F_SCORE.name]] = r.record_id;
+      });
+    }
+  } catch(e) { console.warn('获取积分表失败，跳过同步:', e); return; }
+
+  // 逐成员写入
+  for (const s of scored) {
+    const rid = existingMap[s.name];
+    const fields = {
+      [F_SCORE.name]:     s.name,
+      [F_SCORE.group]:    s.group,
+      [F_SCORE.question]: s.question,
+      [F_SCORE.answer]:   s.answer,
+      [F_SCORE.share]:    s.share,
+      [F_SCORE.liked]:    s.liked,
+      [F_SCORE.total]:    s.total,
+      [F_SCORE.qRank]:    s.qRank,
+      [F_SCORE.aRank]:    s.aRank,
+    };
+    try {
+      if (rid) {
+        // 更新已有记录
+        await apiCall(`/bitable/v1/apps/${CONFIG.appToken}/tables/${CONFIG.scoreTable}/records/${rid}`, {
+          method: 'PUT', body: JSON.stringify({ fields })
+        });
+      } else {
+        // 新增记录
+        await apiCall(`/bitable/v1/apps/${CONFIG.appToken}/tables/${CONFIG.scoreTable}/records`, {
+          method: 'POST', body: JSON.stringify({ fields })
+        });
+      }
+    } catch(e) { console.warn('积分写入失败:', s.name, e); }
+  }
 }
 
 // ===================== CSV 导出 =====================
