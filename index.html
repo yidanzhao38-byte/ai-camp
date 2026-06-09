@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>AI训练营 · 互助看板</title>
 <style>
 /* ========== CSS 变量 & 全局 ========== */
@@ -23,19 +23,130 @@
   --radius: 12px;
   --shadow: 0 1px 3px rgba(0,0,0,0.1);
   --shadow-lg: 0 10px 25px rgba(0,0,0,0.1);
+  --tab-height: 56px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: var(--gray-50); color: var(--gray-900); }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: var(--gray-50); color: var(--gray-900); padding-bottom: calc(var(--tab-height) + var(--safe-bottom) + 12px); }
 
-/* ========== 布局 ========== */
-.header { background: linear-gradient(135deg, var(--primary), #7c3aed); color: white; padding: 20px 32px; display: flex; align-items: center; justify-content: space-between; }
-.header h1 { font-size: 22px; font-weight: 700; }
-.header .subtitle { font-size: 13px; opacity: 0.85; margin-top: 2px; }
-.user-bar { display: flex; align-items: center; gap: 12px; font-size: 14px; }
-.user-bar .avatar { width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.25); display: flex; align-items: center; justify-content: center; font-weight: 700; }
-.container { max-width: 1100px; margin: 0 auto; padding: 24px 20px; }
+/* ========== 顶部 Header ========== */
+.header { background: linear-gradient(135deg, var(--primary), #7c3aed); color: white; padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+.header h1 { font-size: 18px; font-weight: 700; }
+.header .subtitle { font-size: 12px; opacity: 0.85; margin-top: 2px; }
+.user-bar { display: flex; align-items: center; gap: 10px; font-size: 14px; }
+.user-bar .avatar { width: 34px; height: 34px; border-radius: 50%; background: rgba(255,255,255,0.25); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; }
+.user-bar .btn-switch { font-size: 12px; padding: 4px 10px; background: transparent; color: white; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; cursor: pointer; }
 
-/* ========== 身份弹窗 ========== */
+/* ========== 底部 Tab 导航 ========== */
+.tab-bar { position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid var(--gray-200); display: flex; z-index: 200; padding-bottom: var(--safe-bottom); box-shadow: 0 -2px 8px rgba(0,0,0,0.05); }
+.tab-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 6px 0; cursor: pointer; color: var(--gray-500); transition: 0.2s; position: relative; height: var(--tab-height); }
+.tab-item:hover { color: var(--gray-700); }
+.tab-item.active { color: var(--primary); }
+.tab-item .tab-icon { font-size: 22px; line-height: 1; }
+.tab-item .tab-label { font-size: 11px; margin-top: 2px; font-weight: 500; }
+.tab-item .tab-badge { position: absolute; top: 4px; right: 50%; margin-right: -14px; width: 8px; height: 8px; border-radius: 50%; background: var(--danger); }
+.tab-item .tab-badge.count { width: auto; height: 18px; min-width: 18px; border-radius: 9px; background: var(--danger); color: white; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; padding: 0 5px; margin-right: -22px; }
+
+/* ========== 内容区域 ========== */
+.container { max-width: 1100px; margin: 0 auto; padding: 16px 14px; }
+.tab-view { display: none; }
+.tab-view.active { display: block; }
+
+/* ========== 排行榜 ========== */
+.leaderboard { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+.lb-card { background: white; border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow); }
+.lb-card .label { font-size: 12px; color: var(--gray-500); margin-bottom: 8px; font-weight: 600; }
+.lb-card .rank-item { display: flex; align-items: center; gap: 8px; padding: 5px 0; font-size: 13px; }
+.lb-card .rank-num { width: 20px; height: 20px; border-radius: 50%; background: var(--gray-100); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+.lb-card .rank-num.gold { background: #fbbf24; color: white; }
+.lb-card .rank-num.silver { background: #9ca3af; color: white; }
+.lb-card .rank-num.bronze { background: #d97706; color: white; }
+.lb-card .rank-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lb-card .rank-score { font-weight: 700; color: var(--primary); }
+
+/* ========== 精华帖区 ========== */
+.section-title { font-size: 15px; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+.section-title::before { content: ''; width: 4px; height: 16px; background: var(--warning); border-radius: 2px; }
+
+/* ========== 排序切换 ========== */
+.sort-bar { display: flex; gap: 8px; margin-bottom: 16px; background: white; border-radius: var(--radius); padding: 5px; box-shadow: var(--shadow); }
+.sort-btn { flex: 1; padding: 8px; text-align: center; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; color: var(--gray-500); border: none; background: transparent; transition: 0.2s; }
+.sort-btn.active { background: var(--primary); color: white; }
+.sort-btn:hover:not(.active) { background: var(--gray-100); }
+
+/* ========== 发帖入口卡片 ========== */
+.post-entry-cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-bottom: 20px; }
+.post-entry-card { background: white; border-radius: var(--radius); padding: 32px 20px; box-shadow: var(--shadow); cursor: pointer; border: 2px solid transparent; text-align: center; transition: all 0.2s; }
+.post-entry-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+.post-entry-card.entry-q:hover { border-color: #3b82f6; background: #eff6ff; }
+.post-entry-card.entry-s:hover { border-color: #10b981; background: #ecfdf5; }
+.post-entry-card .entry-icon { font-size: 40px; margin-bottom: 10px; }
+.post-entry-card .entry-title { font-size: 17px; font-weight: 700; margin-bottom: 6px; }
+.post-entry-card .entry-desc { font-size: 12px; color: var(--gray-500); line-height: 1.5; }
+
+/* ========== 发帖表单（在发帖Tab内） ========== */
+.post-form-card { background: white; border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow); }
+.post-form-card .form-header { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+.post-form-card .form-back { background: none; border: none; font-size: 18px; cursor: pointer; color: var(--gray-500); padding: 4px; }
+.post-form-card .form-title { font-size: 18px; font-weight: 700; }
+.post-form-card .form-row { margin-bottom: 16px; }
+.post-form-card label { display: block; font-size: 13px; font-weight: 600; color: var(--gray-700); margin-bottom: 6px; }
+.post-form-card select, .post-form-card input, .post-form-card textarea { width: 100%; padding: 10px 14px; border: 2px solid var(--gray-200); border-radius: 8px; font-size: 14px; font-family: inherit; }
+.post-form-card select:focus, .post-form-card input:focus, .post-form-card textarea:focus { outline: none; border-color: var(--primary); }
+.post-form-card textarea { resize: vertical; min-height: 140px; }
+.post-form-card .tag-options { display: flex; flex-wrap: wrap; gap: 8px; }
+.post-form-card .tag-btn { padding: 6px 14px; border-radius: 20px; border: 2px solid var(--gray-200); background: white; font-size: 13px; cursor: pointer; transition: 0.2s; }
+.post-form-card .tag-btn:hover { border-color: var(--primary-light); }
+.post-form-card .tag-btn.selected { background: var(--primary-bg); border-color: var(--primary); color: var(--primary); font-weight: 600; }
+.post-form-card .template-hint { font-size: 12px; color: var(--gray-500); margin-top: 4px; }
+
+/* ========== 内容卡片列表 ========== */
+.card-list { display: flex; flex-direction: column; gap: 14px; }
+.content-card { background: white; border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); border-left: 4px solid var(--primary); position: relative; }
+.content-card.pinned { border-left-color: var(--warning); background: #fffbeb; }
+.content-card.featured { border-left-color: #f59e0b; }
+.content-card .card-top { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; flex-wrap: wrap; }
+.content-card .type-badge { padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; flex-shrink: 0; }
+.badge-q { background: #dbeafe; color: #1d4ed8; }
+.badge-s { background: #d1fae5; color: #065f46; }
+.content-card .card-title { font-size: 16px; font-weight: 700; flex: 1; cursor: pointer; min-width: 120px; }
+.content-card .card-title:hover { color: var(--primary); }
+.content-card .card-meta { font-size: 13px; color: var(--gray-500); margin-bottom: 8px; }
+.content-card .card-body { font-size: 14px; color: var(--gray-700); line-height: 1.6; margin-bottom: 12px; white-space: pre-wrap; max-height: 140px; overflow: hidden; position: relative; }
+.content-card .card-body.expanded { max-height: none; }
+.content-card .card-body-fade { position: absolute; bottom: 0; left: 0; right: 0; height: 40px; background: linear-gradient(transparent, white); pointer-events: none; }
+.content-card .card-body-more { font-size: 13px; color: var(--primary); cursor: pointer; display: inline-block; }
+.content-card .card-tag { display: inline-block; padding: 2px 8px; background: var(--gray-100); border-radius: 4px; font-size: 12px; color: var(--gray-500); margin-right: 6px; margin-bottom: 8px; }
+.content-card .card-actions { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.card-actions .like-btn { display: flex; align-items: center; gap: 5px; padding: 5px 12px; border-radius: 20px; border: 1px solid var(--gray-200); background: white; cursor: pointer; font-size: 13px; transition: 0.2s; }
+.card-actions .like-btn:hover { border-color: var(--danger); color: var(--danger); }
+.card-actions .like-btn.liked { background: #fef2f2; border-color: var(--danger); color: var(--danger); }
+.card-actions .answer-count { font-size: 13px; color: var(--gray-500); cursor: pointer; display: flex; align-items: center; gap: 4px; }
+.card-actions .answer-count:hover { color: var(--primary); }
+.op-btn { font-size: 12px; padding: 4px 10px; border-radius: 6px; border: none; cursor: pointer; }
+.op-pin { background: #fef3c7; color: #92400e; }
+.op-hide { background: #fee2e2; color: #991b1b; }
+.op-delete { background: #fce7f3; color: #9d174d; }
+
+/* ========== 回答区 ========== */
+.answers-inline { margin-top: 14px; border-top: 1px solid var(--gray-100); padding-top: 12px; }
+.answers-inline .answer-item { padding: 10px 0; border-bottom: 1px solid var(--gray-50); }
+.answers-inline .answer-item:last-child { border-bottom: none; }
+.answers-inline .answer-meta { font-size: 12px; color: var(--gray-500); margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
+.answers-inline .answer-body { font-size: 14px; line-height: 1.6; white-space: pre-wrap; }
+.answers-inline .answer-ref { font-size: 12px; color: var(--primary); margin-top: 4px; }
+.answers-inline .answer-ref a { color: var(--primary); text-decoration: none; }
+
+/* ========== 按钮通用 ========== */
+.btn { padding: 10px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; border: none; }
+.btn-primary { background: var(--primary); color: white; }
+.btn-primary:hover { background: #4338ca; }
+.btn-ghost { background: var(--gray-100); color: var(--gray-700); }
+.btn-ghost:hover { background: var(--gray-200); }
+.btn-sm { padding: 6px 14px; font-size: 13px; }
+.btn-block { width: 100%; margin-top: 8px; }
+
+/* ========== 弹窗 ========== */
 #identity-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
 #identity-modal .card { background: white; border-radius: var(--radius); padding: 32px; width: 400px; box-shadow: var(--shadow-lg); }
 #identity-modal h2 { font-size: 20px; margin-bottom: 6px; }
@@ -45,115 +156,16 @@ body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
 #identity-modal input:focus, #identity-modal select:focus { outline: none; border-color: var(--primary); }
 #identity-modal button { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; }
 
-/* ========== 展示区（积分榜） ========== */
-.leaderboard { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px; }
-.lb-card { background: white; border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); }
-.lb-card .label { font-size: 13px; color: var(--gray-500); margin-bottom: 10px; font-weight: 600; }
-.lb-card .rank-item { display: flex; align-items: center; gap: 10px; padding: 6px 0; font-size: 14px; }
-.lb-card .rank-num { width: 22px; height: 22px; border-radius: 50%; background: var(--gray-100); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
-.lb-card .rank-num.gold { background: #fbbf24; color: white; }
-.lb-card .rank-num.silver { background: #9ca3af; color: white; }
-.lb-card .rank-num.bronze { background: #d97706; color: white; }
-.lb-card .rank-name { flex: 1; }
-.lb-card .rank-score { font-weight: 700; color: var(--primary); }
-
-/* ========== Tab 切换 ========== */
-.tabs { display: flex; gap: 4px; margin-bottom: 20px; background: white; border-radius: var(--radius); padding: 6px; box-shadow: var(--shadow); }
-.tab { flex: 1; padding: 10px; text-align: center; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; color: var(--gray-500); transition: 0.2s; }
-.tab:hover { background: var(--gray-100); }
-.tab.active { background: var(--primary); color: white; }
-
-/* ========== 入口卡片（全部页 2 个 / 分类页 1 个） ========== */
-.entry-cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 24px; }
-.entry-cards.single { display: block; }
-.entry-card { background: white; border-radius: var(--radius); padding: 28px 24px; box-shadow: var(--shadow); cursor: pointer; border: 2px solid transparent; transition: all 0.2s; text-align: center; }
-.entry-card:hover { border-color: var(--primary-light); box-shadow: var(--shadow-lg); transform: translateY(-2px); }
-.entry-card .entry-icon { font-size: 36px; margin-bottom: 12px; }
-.entry-card .entry-title { font-size: 18px; font-weight: 700; margin-bottom: 6px; color: var(--gray-900); }
-.entry-card .entry-desc { font-size: 13px; color: var(--gray-500); line-height: 1.5; }
-.entry-card.card-q:hover { border-color: #3b82f6; background: #eff6ff; }
-.entry-card.card-s:hover { border-color: #10b981; background: #ecfdf5; }
-
-/* ========== 内联表单卡片（单卡片标签页直显） ========== */
-.inline-form-card { background: white; border-radius: var(--radius); padding: 32px; box-shadow: var(--shadow); width: 100%; box-sizing: border-box; }
-.inline-form-card .entry-icon { font-size: 40px; margin-bottom: 4px; }
-.inline-form-card .entry-title { font-size: 20px; font-weight: 700; margin-bottom: 20px; color: var(--gray-900); }
-.inline-form-card .form-row { margin-bottom: 16px; }
-.inline-form-card label { display: block; font-size: 13px; font-weight: 600; color: var(--gray-700); margin-bottom: 6px; }
-.inline-form-card select, .inline-form-card input, .inline-form-card textarea { width: 100%; padding: 10px 14px; border: 2px solid var(--gray-200); border-radius: 8px; font-size: 14px; font-family: inherit; }
-.inline-form-card select:focus, .inline-form-card input:focus, .inline-form-card textarea:focus { outline: none; border-color: var(--primary); }
-.inline-form-card textarea { resize: vertical; min-height: 120px; }
-.inline-form-card .btn-block { width: 100%; margin-top: 4px; }
-.inline-form-card .tag-options { display: flex; flex-wrap: wrap; gap: 8px; }
-.inline-form-card .tag-btn { padding: 6px 14px; border-radius: 20px; border: 2px solid var(--gray-200); background: white; font-size: 13px; cursor: pointer; transition: 0.2s; }
-.inline-form-card .tag-btn:hover { border-color: var(--primary-light); }
-.inline-form-card .tag-btn.selected { background: var(--primary-bg); border-color: var(--primary); color: var(--primary); font-weight: 600; }
-
-/* ========== 创建弹窗 ========== */
-#create-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 999; overflow-y: auto; }
-#create-modal .modal-card { max-width: 600px; margin: 40px auto; background: white; border-radius: var(--radius); padding: 28px; box-shadow: var(--shadow-lg); position: relative; }
-#create-modal .modal-close { position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 22px; cursor: pointer; color: var(--gray-500); }
-#create-modal h3 { font-size: 18px; margin-bottom: 18px; }
-#create-modal label { display: block; font-size: 13px; font-weight: 600; color: var(--gray-700); margin-bottom: 5px; margin-top: 12px; }
-#create-modal select, #create-modal input, #create-modal textarea { width: 100%; padding: 10px 14px; border: 2px solid var(--gray-200); border-radius: 8px; font-size: 14px; font-family: inherit; margin-bottom: 4px; }
-#create-modal select:focus, #create-modal input:focus, #create-modal textarea:focus { outline: none; border-color: var(--primary); }
-#create-modal textarea { resize: vertical; min-height: 120px; }
-.tag-options { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
-.tag-btn { padding: 6px 14px; border-radius: 20px; border: 2px solid var(--gray-200); background: white; font-size: 13px; cursor: pointer; transition: 0.2s; }
-.tag-btn:hover { border-color: var(--primary-light); }
-.tag-btn.selected { background: var(--primary-bg); border-color: var(--primary); color: var(--primary); font-weight: 600; }
-
-/* ========== 按钮 ========== */
-.btn { padding: 10px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; border: none; }
-.btn-primary { background: var(--primary); color: white; }
-.btn-primary:hover { background: #4338ca; }
-.btn-ghost { background: var(--gray-100); color: var(--gray-700); }
-.btn-ghost:hover { background: var(--gray-200); }
-.btn-sm { padding: 6px 14px; font-size: 13px; }
-.btn-block { width: 100%; margin-top: 16px; }
-
-/* ========== 内容卡片列表 ========== */
-.card-list { display: flex; flex-direction: column; gap: 14px; }
-.content-card { background: white; border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); border-left: 4px solid var(--primary); position: relative; }
-.content-card.pinned { border-left-color: var(--warning); background: #fffbeb; }
-.content-card .card-top { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
-.content-card .type-badge { padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; flex-shrink: 0; }
-.badge-q { background: #dbeafe; color: #1d4ed8; }
-.badge-s { background: #d1fae5; color: #065f46; }
-.content-card .card-title { font-size: 16px; font-weight: 700; flex: 1; cursor: pointer; }
-.content-card .card-title:hover { color: var(--primary); }
-.content-card .card-meta { font-size: 13px; color: var(--gray-500); margin-bottom: 8px; }
-.content-card .card-body { font-size: 14px; color: var(--gray-700); line-height: 1.6; margin-bottom: 12px; white-space: pre-wrap; }
-.content-card .card-tag { display: inline-block; padding: 2px 8px; background: var(--gray-100); border-radius: 4px; font-size: 12px; color: var(--gray-500); margin-right: 6px; margin-bottom: 8px; }
-.content-card .card-actions { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
-.card-actions .like-btn { display: flex; align-items: center; gap: 5px; padding: 5px 12px; border-radius: 20px; border: 1px solid var(--gray-200); background: white; cursor: pointer; font-size: 13px; transition: 0.2s; }
-.card-actions .like-btn:hover { border-color: var(--danger); color: var(--danger); }
-.card-actions .like-btn.liked { background: #fef2f2; border-color: var(--danger); color: var(--danger); }
-.card-actions .answer-count { font-size: 13px; color: var(--gray-500); cursor: pointer; }
-.card-actions .answer-count:hover { color: var(--primary); }
-.op-btn { font-size: 12px; padding: 4px 10px; border-radius: 6px; border: none; cursor: pointer; }
-.op-pin { background: #fef3c7; color: #92400e; }
-.op-hide { background: #fee2e2; color: #991b1b; }
-.op-delete { background: #fce7f3; color: #9d174d; }
-
-/* ========== 回答区（卡片内自动展示） ========== */
-.answers-inline { margin-top: 14px; border-top: 1px solid var(--gray-100); padding-top: 12px; }
-.answers-inline .answer-item { padding: 10px 0; border-bottom: 1px solid var(--gray-50); }
-.answers-inline .answer-item:last-child { border-bottom: none; }
-.answers-inline .answer-meta { font-size: 12px; color: var(--gray-500); margin-bottom: 4px; }
-.answers-inline .answer-body { font-size: 14px; line-height: 1.6; white-space: pre-wrap; }
-.answers-inline .answer-ref { font-size: 12px; color: var(--primary); margin-top: 4px; }
-
-/* ========== 详情弹窗 ========== */
 #detail-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 999; overflow-y: auto; }
-#detail-modal .modal-card { max-width: 720px; margin: 40px auto; background: white; border-radius: var(--radius); padding: 28px; position: relative; }
+#detail-modal .modal-card { max-width: 720px; margin: 40px auto; background: white; border-radius: var(--radius); padding: 28px; position: relative; box-shadow: var(--shadow-lg); }
 #detail-modal .modal-close { position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 22px; cursor: pointer; color: var(--gray-500); }
 .reply-box { display: flex; gap: 10px; margin-top: 12px; align-items: flex-start; }
 .reply-box textarea { flex: 1; padding: 10px; border: 2px solid var(--gray-200); border-radius: 8px; font-size: 14px; resize: vertical; min-height: 60px; font-family: inherit; }
 .reply-box textarea:focus { outline: none; border-color: var(--primary); }
 
-/* ========== 置顶标记 ========== */
-.pinned-tag { display: inline-block; padding: 2px 8px; background: #fbbf24; color: #78350f; font-size: 11px; font-weight: 700; border-radius: 4px; margin-left: 8px; }
+/* ========== 标记 ========== */
+.pinned-tag { display: inline-block; padding: 2px 8px; background: #fbbf24; color: #78350f; font-size: 11px; font-weight: 700; border-radius: 4px; margin-left: 6px; }
+.featured-tag { display: inline-block; padding: 2px 8px; background: linear-gradient(135deg, #fbbf24, #f59e0b); color: white; font-size: 11px; font-weight: 700; border-radius: 4px; margin-left: 6px; }
 
 /* ========== 加载 & 空状态 ========== */
 .loading { text-align: center; padding: 40px; color: var(--gray-500); }
@@ -161,13 +173,13 @@ body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
 .empty .icon { font-size: 40px; margin-bottom: 10px; }
 
 /* ========== 导出按钮 ========== */
-.export-bar { display: flex; justify-content: flex-end; margin-bottom: 14px; }
+.export-bar { display: flex; justify-content: flex-end; margin-bottom: 10px; }
 
 /* ========== 响应式 ========== */
 @media (max-width: 700px) {
   .leaderboard { grid-template-columns: 1fr 1fr; }
-  .header { flex-direction: column; gap: 12px; text-align: center; }
-  .entry-cards { grid-template-columns: 1fr; }
+  .header { flex-direction: column; gap: 10px; text-align: center; }
+  .post-entry-cards { grid-template-columns: 1fr; }
 }
 </style>
 </head>
@@ -200,6 +212,7 @@ body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
 
 <!-- 主界面 -->
 <div id="app" style="display:none;">
+  <!-- Header -->
   <div class="header">
     <div>
       <h1>🤖 AI训练营 · 互助看板</h1>
@@ -211,77 +224,32 @@ body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
         <div id="header-name" style="font-weight:600;"></div>
         <div id="header-group" style="font-size:12px;opacity:0.85;"></div>
       </div>
-      <button class="btn btn-sm btn-ghost" onclick="logout()" style="color:white;border:1px solid rgba(255,255,255,0.3);">切换</button>
+      <button class="btn-switch" onclick="logout()">切换</button>
     </div>
   </div>
 
-  <div class="container">
-    <!-- 积分榜 -->
-    <div class="leaderboard">
-      <div class="lb-card">
-        <div class="label">🔥 提问榜 Top3</div>
-        <div id="rank-question"></div>
-      </div>
-      <div class="lb-card">
-        <div class="label">💬 回答榜 Top3</div>
-        <div id="rank-answer"></div>
-      </div>
-      <div class="lb-card">
-        <div class="label">📖 分享榜 Top3</div>
-        <div id="rank-share"></div>
-      </div>
-      <div class="lb-card">
-        <div class="label">🏆 小组积分</div>
-        <div id="rank-group"></div>
-      </div>
-    </div>
+  <!-- 内容区域 -->
+  <div class="container" id="main-content"></div>
 
-    <!-- Tab -->
-    <div class="tabs">
-      <div class="tab active" onclick="switchTab('all', this)">全部</div>
-      <div class="tab" onclick="switchTab('提问求助', this)">❓ 提问求助</div>
-      <div class="tab" onclick="switchTab('经验分享', this)">💡 经验分享</div>
-      <div class="tab" onclick="switchTab('mine', this)">我的</div>
+  <!-- 底部 Tab 导航 -->
+  <div class="tab-bar" id="tab-bar">
+    <div class="tab-item active" onclick="switchMainTab('home')" data-tab="home">
+      <div class="tab-icon">🏠</div>
+      <div class="tab-label">首页</div>
     </div>
-
-    <!-- 运营导出 -->
-    <div class="export-bar" id="export-bar" style="display:none;">
-      <button class="btn btn-sm btn-ghost" onclick="exportCSV()">📥 导出数据（CSV）</button>
+    <div class="tab-item" onclick="switchMainTab('interact')" data-tab="interact">
+      <div class="tab-icon">💬</div>
+      <div class="tab-label">互动</div>
     </div>
-
-    <!-- 入口卡片 + 内容列表 -->
-    <div class="entry-cards" id="entry-cards"></div>
-    <div class="card-list" id="card-list">
-      <div class="loading">加载中...</div>
+    <div class="tab-item" onclick="switchMainTab('post')" data-tab="post">
+      <div class="tab-icon">✍️</div>
+      <div class="tab-label">发帖</div>
     </div>
-  </div>
-</div>
-
-<!-- 创建弹窗 -->
-<div id="create-modal">
-  <div class="modal-card">
-    <button class="modal-close" onclick="closeCreate()">✕</button>
-    <h3 id="create-modal-title">✏️ 发起提问</h3>
-    <div>
-      <label>内容类型</label>
-      <select id="create-content-type" onchange="onCreateTypeChange()">
-        <option value="提问求助">❓ 提问求助</option>
-        <option value="经验分享">💡 经验分享</option>
-      </select>
+    <div class="tab-item" onclick="switchMainTab('mine')" data-tab="mine">
+      <div class="tab-icon">👤</div>
+      <div class="tab-label">我的</div>
+      <div class="tab-badge" id="mine-badge" style="display:none;"></div>
     </div>
-    <div>
-      <label>分类标签</label>
-      <div class="tag-options" id="create-tags"></div>
-    </div>
-    <div>
-      <label>标题</label>
-      <input id="create-title" type="text" placeholder="简要描述你的问题或分享主题">
-    </div>
-    <div>
-      <label>正文</label>
-      <textarea id="create-body" placeholder="详细描述你的问题，或分享你的经验..."></textarea>
-    </div>
-    <button class="btn btn-primary btn-block" onclick="submitFromModal()">发布</button>
   </div>
 </div>
 
@@ -304,58 +272,32 @@ const CONFIG = {
   scoreTable: 'tblKxQwDNatv4ycs',
 };
 
-// 运营组三人（看置顶/隐藏）
 const ADMINS = ['赵一丹', '陈子昂', '佘紫薇'];
 
-// 字段名映射
 const F_MAIN = {
-  contentId: '内容ID',
-  contentType:'内容类型',
-  tag:       '分类标签',
-  author:    '发布人',
-  time:      '发布时间',
-  answers:   '回答数',
-  group:     '所属小组',
-  pinned:    '是否置顶',
-  hidden:    '是否隐藏',
-  title:     '标题',
-  body:      '正文内容',
-  likes:     '点赞数',
-  status:    '状态'
+  contentId: '内容ID', contentType:'内容类型', tag: '分类标签',
+  author: '发布人', time: '发布时间', answers: '回答数',
+  group: '所属小组', pinned: '是否置顶', hidden: '是否隐藏',
+  title: '标题', body: '正文内容', likes: '点赞数', status: '状态'
 };
 
 const F_ANSWER = {
-  likes:     '点赞数',
-  linkId:    '关联内容ID',
-  author:    '回答者',
-  time:      '回答时间',
-  group:     '所属小组',
-  answerId:  '回答ID',
-  refDesc:   '资料简述',
-  refUrl:    '参考资料URL',
-  body:      '回答内容'
+  likes: '点赞数', linkId: '关联内容ID', author: '回答者',
+  time: '回答时间', group: '所属小组', answerId: '回答ID',
+  refDesc: '资料简述', refUrl: '参考资料URL', body: '回答内容'
 };
 
-// 积分表字段映射（成员积分表：tblKxQwDNatv4ycs）
 const F_SCORE = {
-  name:     '姓名',
-  group:    '所属小组',
-  question: '提问次数',
-  answer:   '回答次数',
-  share:    '经验分享次数',
-  liked:    '被点赞次数',
-  total:    '总积分',
-  qRank:    '提问榜排名',
-  aRank:    '回答榜排名'
+  name: '姓名', group: '所属小组', question: '提问次数',
+  answer: '回答次数', share: '经验分享次数', liked: '被点赞次数',
+  total: '总积分', qRank: '提问榜排名', aRank: '回答榜排名'
 };
 
-// 分类标签：提问求助7个，经验分享5个（匹配飞书多维表格选项）
 const TAGS = {
   '提问求助': ['💬 提示词设计', '🤖 Agent构建', '📄 文档/文字处理', '📊 数据处理与计算', '🔗 工具使用与连接', '🎨 产品设计与规划', '❓ 其他'],
   '经验分享': ['💡 工具技巧', '🔧 踩坑记录', '📖 资源推荐', '🤖 提示词分享', '🔗 工作流分享']
 };
 
-// 模板
 const TEMPLATES = {
   '提问求助': {
     title: '请简要描述你的问题',
@@ -370,14 +312,17 @@ const TEMPLATES = {
 // ===================== 全局状态 =====================
 let currentUser = null;
 let allPosts = [];
-let allAnswers = [];  // { record_id, fields } ，key 为 linkId
-let answersByPost = {};  // postId -> [answer records]
-let currentTab = 'all';
-let currentDetail = null;
-let createMode = '提问求助';  // 当前打开弹窗的入口类型
-let _apiBusy = false;       // 防止重复提交
-let _cacheTime = 0;         // 数据缓存时间戳
-let _cacheTTL = 8000;       // 缓存有效期 8 秒
+let allAnswers = [];
+let answersByPost = {};
+let currentMainTab = 'home';
+let currentSort = 'hot';       // 'hot' | 'newest'
+let postFormMode = null;       // '提问求助' | '经验分享' | null
+let _apiBusy = false;
+let _cacheTime = 0;
+let _cacheTTL = 8000;
+
+// 通知相关
+let _lastSeenTimestamp = 0;  // 上次查看"我的"的时间戳
 
 // ===================== 身份管理 =====================
 function loadIdentity() {
@@ -398,6 +343,7 @@ function saveIdentity() {
 
 function logout() {
   localStorage.removeItem('ai_camp_user');
+  localStorage.removeItem('ai_camp_last_seen');
   location.reload();
 }
 
@@ -407,28 +353,24 @@ function initApp() {
   document.getElementById('header-name').textContent = currentUser.name;
   document.getElementById('header-group').textContent = currentUser.group;
   document.getElementById('header-avatar').textContent = currentUser.name[0];
-
-  if (ADMINS.includes(currentUser.name)) {
-    document.getElementById('export-bar').style.display = 'flex';
-  }
-
+  _lastSeenTimestamp = parseInt(localStorage.getItem('ai_camp_last_seen') || '0');
+  switchMainTab('home');
   loadAll();
 }
 
 // ===================== 加载 =====================
 async function loadAll(force = false) {
-  if (!force && Date.now() - _cacheTime < _cacheTTL) { renderAll(); return; }
+  if (!force && Date.now() - _cacheTime < _cacheTTL) { renderCurrentTab(); return; }
   await Promise.all([loadPosts(), loadAnswers()]);
   _cacheTime = Date.now();
   loadRanks();
-  syncScores();  // 异步同步积分到后端（不阻塞渲染）
+  syncScores();
+  renderCurrentTab();
 }
 
-// 防双击锁：返回 true 表示获取锁成功，false 表示正在忙
 function _acquireLock(msg) {
   if (_apiBusy) { if (msg) alert(msg); return false; }
-  _apiBusy = true;
-  return true;
+  _apiBusy = true; return true;
 }
 function _releaseLock() { _apiBusy = false; }
 
@@ -445,7 +387,6 @@ async function loadPosts() {
       });
     }
   } catch(e) { console.error(e); }
-  renderAll();
 }
 
 async function loadAnswers() {
@@ -453,7 +394,6 @@ async function loadAnswers() {
     const data = await apiCall(`/bitable/v1/apps/${CONFIG.appToken}/tables/${CONFIG.answerTable}/records?page_size=200`);
     if (data.code === 0) {
       allAnswers = (data.data.items || []).map(r => ({ id: r.record_id, ...r.fields }));
-      // 按 linkId 分组
       answersByPost = {};
       allAnswers.forEach(a => {
         const linkId = a[F_ANSWER.linkId];
@@ -462,120 +402,263 @@ async function loadAnswers() {
           answersByPost[linkId].push(a);
         }
       });
+      // 更新通知标记
+      updateMineBadge();
     }
   } catch(e) { console.error(e); }
 }
 
-// ===================== 入口卡片 =====================
-function renderEntryCards() {
-  const container = document.getElementById('entry-cards');
-
-  // 提问求助 / 经验分享 标签 → 内联表单直显
-  if (currentTab === '提问求助') {
-    container.className = 'entry-cards single';
-    container.innerHTML = renderInlineForm('提问求助');
-    return;
+// ===================== 主 Tab 切换 =====================
+function switchMainTab(tab) {
+  // 如果我切换到"我的"，记录查看时间
+  if (currentMainTab === 'mine' && tab !== 'mine') {
+    _lastSeenTimestamp = Date.now();
+    localStorage.setItem('ai_camp_last_seen', _lastSeenTimestamp);
+    document.getElementById('mine-badge').style.display = 'none';
   }
-  if (currentTab === '经验分享') {
-    container.className = 'entry-cards single';
-    container.innerHTML = renderInlineForm('经验分享');
-    return;
+  if (tab === 'mine') {
+    _lastSeenTimestamp = Date.now();
+    localStorage.setItem('ai_camp_last_seen', _lastSeenTimestamp);
+    document.getElementById('mine-badge').style.display = 'none';
   }
 
-  // 我的 → 不显示入口卡片，只展示下方内容列表
-  if (currentTab === 'mine') {
-    container.innerHTML = '';
-    container.className = 'entry-cards';
-    return;
-  }
+  currentMainTab = tab;
+  // 返回时重置发帖表单
+  if (tab !== 'post') postFormMode = null;
 
-  // 全部 → 显示可点击入口卡片
-  container.className = 'entry-cards';
-  const cards = [
-    { mode: '提问求助', icon: '🙋', title: '发起提问', desc: '遇到问题？在这里提问，大家帮你解答', cls: 'card-q' },
-    { mode: '经验分享', icon: '💡', title: '分享经验', desc: '有好的实践经验？分享出来帮助更多人', cls: 'card-s' }
-  ];
-
-  container.innerHTML = cards.map(c => `
-    <div class="entry-card ${c.cls}" onclick="openCreate('${c.mode}')">
-      <div class="entry-icon">${c.icon}</div>
-      <div class="entry-title">${c.title}</div>
-      <div class="entry-desc">${c.desc}</div>
-    </div>
-  `).join('');
+  document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+  document.querySelector(`.tab-item[data-tab="${tab}"]`).classList.add('active');
+  renderCurrentTab();
 }
 
-// ===================== 内联表单 =====================
-function renderInlineForm(mode) {
+function renderCurrentTab() {
+  const container = document.getElementById('main-content');
+  switch (currentMainTab) {
+    case 'home': renderHome(container); break;
+    case 'interact': renderInteract(container); break;
+    case 'post': renderPost(container); break;
+    case 'mine': renderMine(container); break;
+  }
+}
+
+// ===================== 首页 =====================
+function renderHome(container) {
+  container.innerHTML = `
+    <!-- 排行榜 -->
+    <div class="leaderboard">
+      <div class="lb-card">
+        <div class="label">🔥 提问榜 Top3</div>
+        <div id="rank-question"></div>
+      </div>
+      <div class="lb-card">
+        <div class="label">💬 回答榜 Top3</div>
+        <div id="rank-answer"></div>
+      </div>
+      <div class="lb-card">
+        <div class="label">📖 分享榜 Top3</div>
+        <div id="rank-share"></div>
+      </div>
+      <div class="lb-card">
+        <div class="label">🏆 小组积分</div>
+        <div id="rank-group"></div>
+      </div>
+    </div>
+    <!-- 精华帖区 -->
+    <div class="section-title">⭐ 精华帖</div>
+    <div class="card-list" id="featured-list">
+      <div class="loading">加载中...</div>
+    </div>
+  `;
+  loadRanks();
+  renderFeatured();
+}
+
+function renderFeatured() {
+  const featuredPosts = allPosts.filter(p => {
+    // 精华帖 = 管理员发布的 OR 管理员置顶的内容
+    return ADMINS.includes(p[F_MAIN.author]) || p[F_MAIN.pinned] === true;
+  });
+
+  const container = document.getElementById('featured-list');
+  if (!container) return;
+  if (featuredPosts.length === 0) {
+    container.innerHTML = '<div class="empty"><div class="icon">⭐</div>暂无精华内容</div>';
+    return;
+  }
+  container.innerHTML = featuredPosts.map(p => renderCard(p)).join('');
+}
+
+// ===================== 互动 =====================
+function renderInteract(container) {
+  const isAdmin = ADMINS.includes(currentUser.name);
+
+  container.innerHTML = `
+    <!-- 导出（管理员可见） -->
+    <div class="export-bar" id="export-bar" style="${isAdmin ? '' : 'display:none;'}">
+      <button class="btn btn-sm btn-ghost" onclick="exportCSV()">📥 导出数据（CSV）</button>
+    </div>
+    <!-- 排序切换 -->
+    <div class="sort-bar">
+      <button class="sort-btn ${currentSort==='hot'?'active':''}" onclick="setSort('hot')">🔥 热门</button>
+      <button class="sort-btn ${currentSort==='newest'?'active':''}" onclick="setSort('newest')">🕐 最新</button>
+    </div>
+    <!-- 帖子列表 -->
+    <div class="card-list" id="interact-list">
+      <div class="loading">加载中...</div>
+    </div>
+  `;
+  renderInteractCards();
+}
+
+function setSort(sort) {
+  currentSort = sort;
+  document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.sort-btn')[sort === 'hot' ? 0 : 1].classList.add('active');
+  renderInteractCards();
+}
+
+function renderInteractCards() {
+  let posts = [...allPosts];
+  // 按热门（点赞数）或最新（发布时间）排序
+  if (currentSort === 'hot') {
+    posts.sort((a, b) => (b[F_MAIN.likes] || 0) - (a[F_MAIN.likes] || 0));
+  } else {
+    posts.sort((a, b) => new Date(b[F_MAIN.time] || 0) - new Date(a[F_MAIN.time] || 0));
+  }
+
+  const container = document.getElementById('interact-list');
+  if (!container) return;
+  if (posts.length === 0) {
+    container.innerHTML = '<div class="empty"><div class="icon">📭</div>暂无内容，来发第一条吧！</div>';
+    return;
+  }
+  container.innerHTML = posts.map(p => renderCard(p, true)).join('');
+
+  // Attach answers to cards that have them
+  posts.forEach(p => {
+    const answers = answersByPost[p.id] || [];
+    if (answers.length > 0) {
+      const cardEl = document.getElementById('card-' + p.id);
+      if (cardEl && !cardEl.querySelector('.answers-inline')) {
+        cardEl.insertAdjacentHTML('beforeend', renderAnswersInline(answers));
+      }
+    }
+  });
+}
+
+// ===================== 发帖 =====================
+function renderPost(container) {
+  if (!postFormMode) {
+    // 显示两个入口卡片
+    container.innerHTML = `
+      <div style="text-align:center;margin-bottom:16px;">
+        <h2 style="font-size:18px;">选择你要发布的内容类型</h2>
+      </div>
+      <div class="post-entry-cards">
+        <div class="post-entry-card entry-q" onclick="openPostForm('提问求助')">
+          <div class="entry-icon">🙋</div>
+          <div class="entry-title">发起提问</div>
+          <div class="entry-desc">遇到问题？在这里提问，大家帮你解答</div>
+        </div>
+        <div class="post-entry-card entry-s" onclick="openPostForm('经验分享')">
+          <div class="entry-icon">💡</div>
+          <div class="entry-title">分享经验</div>
+          <div class="entry-desc">有好的实践经验？分享出来帮助更多人</div>
+        </div>
+      </div>
+    `;
+  } else {
+    // 显示对应的发帖表单
+    renderPostForm(container, postFormMode);
+  }
+}
+
+function openPostForm(mode) {
+  postFormMode = mode;
+  renderCurrentTab();
+}
+
+function closePostForm() {
+  postFormMode = null;
+  renderCurrentTab();
+}
+
+function renderPostForm(container, mode) {
   const tags = TAGS[mode] || [];
   const tpl = TEMPLATES[mode];
-  const isExp = mode === '经验分享';
-  const icon = isExp ? '💡' : '🙋';
+  const isQ = mode === '提问求助';
+  const icon = isQ ? '🙋' : '💡';
+  const title = isQ ? '发起提问' : '分享经验';
+  const formId = 'post-form-' + mode.replace(/\s/g, '');
 
-  return `
-    <div class="inline-form-card" data-mode="${mode}">
-      <div style="text-align:center;">
-        <div class="entry-icon">${icon}</div>
-        <div class="entry-title">${isExp ? '分享经验' : '发起提问'}</div>
+  container.innerHTML = `
+    <div class="post-form-card" id="${formId}">
+      <div class="form-header">
+        <button class="form-back" onclick="closePostForm()">←</button>
+        <div class="form-title">${icon} ${title}</div>
       </div>
+      ${isQ ? '' : `
       <div class="form-row">
         <label>内容类型</label>
-        <select onchange="onInlineTypeChange(this)">
-          <option value="提问求助" ${mode==='提问求助'?'selected':''}>❓ 提问求助</option>
-          <option value="经验分享" ${mode==='经验分享'?'selected':''}>💡 经验分享</option>
+        <select id="pf-content-type" style="background:var(--gray-100);" disabled>
+          <option value="经验分享" selected>💡 经验分享</option>
         </select>
       </div>
+      `}
       <div class="form-row">
         <label>分类标签（可多选）</label>
-        <div class="tag-options inline-tags" data-inline-tags>
-          ${tags.map(t => `<div class="tag-btn selected" data-tag="${t}" onclick="this.classList.toggle('selected')">${t}</div>`).join('')}
+        <div class="tag-options" id="pf-tags">
+          ${tags.map(t => `<div class="tag-btn" data-tag="${escapeHtml(t)}" onclick="this.classList.toggle('selected')">${t}</div>`).join('')}
         </div>
       </div>
       <div class="form-row">
         <label>标题</label>
-        <input id="inline-title" type="text" value="${escapeHtml(tpl.title)}" placeholder="简要描述你的问题或分享主题">
+        <input id="pf-title" type="text" value="${escapeHtml(tpl.title)}" data-template="${escapeHtml(tpl.title)}" placeholder="${escapeHtml(tpl.title)}"
+          onfocus="clearTemplate(this)" oninput="clearTemplate(this)">
       </div>
       <div class="form-row">
         <label>正文</label>
-        <textarea id="inline-body" rows="6" placeholder="详细描述...">${tpl.body}</textarea>
+        <textarea id="pf-body" rows="8" data-template="${escapeHtml(tpl.body)}" placeholder="${escapeHtml(tpl.body)}"
+          onfocus="clearTemplateText(this)" oninput="clearTemplateText(this)">${tpl.body}</textarea>
+        <div class="template-hint">💡 上方为参考模板，开始输入后自动消失</div>
       </div>
-      <div class="form-row" id="ref-link-row" style="${isExp ? '' : 'display:none;'}">
+      ${!isQ ? `
+      <div class="form-row">
         <label>📎 参考链接（可选）</label>
-        <input id="inline-ref-desc" type="text" placeholder="链接描述，如：腾讯文档 / 截图说明">
-        <input id="inline-ref-url" type="text" placeholder="粘贴链接地址" style="margin-top:6px;">
+        <input id="pf-ref-desc" type="text" placeholder="链接描述，如：腾讯文档 / 截图说明">
+        <input id="pf-ref-url" type="text" placeholder="粘贴链接地址" style="margin-top:6px;">
       </div>
-      <button class="btn btn-primary btn-block" onclick="submitInline()">🚀 发布</button>
+      ` : ''}
+      <button class="btn btn-primary btn-block" onclick="submitPostForm('${mode}')">🚀 发布</button>
     </div>
   `;
 }
 
-function onInlineTypeChange(sel) {
-  // 直接整表重绘，确保标签、模板、参考链接区域全部同步
-  const newMode = sel.value;
-  const entryCards = document.getElementById('entry-cards');
-  entryCards.innerHTML = renderInlineForm(newMode);
+function clearTemplate(input) {
+  const tpl = input.dataset.template;
+  if (input.value === tpl) input.value = '';
+}
+function clearTemplateText(textarea) {
+  const tpl = textarea.dataset.template;
+  if (textarea.value.trim() === tpl) textarea.value = '';
 }
 
-async function submitInline() {
+async function submitPostForm(mode) {
   if (!_acquireLock('正在提交中，请稍候...')) return;
-  const btn = document.querySelector('.inline-form-card .btn-primary');
+  const btn = document.querySelector('.post-form-card .btn-primary');
   if (btn) { btn.disabled = true; btn.textContent = '提交中...'; }
-  const card = document.querySelector('.inline-form-card');
-  const mode = card ? card.getAttribute('data-mode') : '提问求助';
-  const typeSelect = document.querySelector('.inline-form-card select');
-  const type = typeSelect ? typeSelect.value : mode;
-  const title = (document.getElementById('inline-title') || {}).value || '';
-  const body = (document.getElementById('inline-body') || {}).value || '';
-  const tags = [...document.querySelectorAll('.inline-tags .tag-btn.selected')].map(e => e.dataset.tag);
+  const title = (document.getElementById('pf-title') || {}).value || '';
+  const body = (document.getElementById('pf-body') || {}).value || '';
+  const tagsEl = document.querySelectorAll('#pf-tags .tag-btn.selected');
+  const tags = [...tagsEl].map(e => e.dataset.tag);
+  const refDesc = (document.getElementById('pf-ref-desc') || {}).value || '';
+  const refUrl = (document.getElementById('pf-ref-url') || {}).value || '';
 
-  // 参考链接
-  const refDesc = (document.getElementById('inline-ref-desc') || {}).value || '';
-  const refUrl = (document.getElementById('inline-ref-url') || {}).value || '';
+  if (!title.trim()) { alert('请填写标题'); _releaseLock(); if (btn) { btn.disabled = false; btn.textContent = '发布'; } return; }
+  if (title.trim() === TEMPLATES[mode].title) { alert('请修改标题为你自己的内容'); _releaseLock(); if (btn) { btn.disabled = false; btn.textContent = '发布'; } return; }
+  if (!body.trim() || body.trim() === TEMPLATES[mode].body) { alert('请填写正文内容'); _releaseLock(); if (btn) { btn.disabled = false; btn.textContent = '发布'; } return; }
+  if (tags.length === 0) { alert('请至少选择一个分类标签'); _releaseLock(); if (btn) { btn.disabled = false; btn.textContent = '发布'; } return; }
 
-  if (!title.trim()) { alert('请填写标题'); return; }
-  if (!body.trim()) { alert('请填写正文'); return; }
-
-  // 拼装正文：如有参考链接，追加到正文末尾
   let finalBody = body.trim();
   if (refUrl.trim()) {
     finalBody += '\n\n### 📎 参考链接\n';
@@ -585,14 +668,14 @@ async function submitInline() {
 
   const now = new Date().toISOString().replace('T', ' ').slice(0, 16);
   const fields = {};
-  fields[F_MAIN.contentType] = type;
+  fields[F_MAIN.contentType] = mode;
   fields[F_MAIN.author] = currentUser.name;
   fields[F_MAIN.group] = currentUser.group;
   fields[F_MAIN.time] = now;
   fields[F_MAIN.tag] = tags.join(', ');
   fields[F_MAIN.title] = title.trim();
   fields[F_MAIN.body] = finalBody;
-  fields[F_MAIN.status] = type === '提问求助' ? '待回答' : '已解决';
+  fields[F_MAIN.status] = mode === '提问求助' ? '待回答' : '已解决';
   fields[F_MAIN.likes] = 0;
   fields[F_MAIN.answers] = 0;
   fields[F_MAIN.pinned] = false;
@@ -600,111 +683,89 @@ async function submitInline() {
 
   try {
     const resp = await apiCall(`/bitable/v1/apps/${CONFIG.appToken}/tables/${CONFIG.mainTable}/records`, {
-      method: 'POST',
-      body: JSON.stringify({ fields })
+      method: 'POST', body: JSON.stringify({ fields })
     });
     if (resp.code === 0) {
-      // 清空表单
-      const titleEl = document.getElementById('inline-title');
-      const bodyEl = document.getElementById('inline-body');
-      const refDescEl = document.getElementById('inline-ref-desc');
-      const refUrlEl = document.getElementById('inline-ref-url');
-      const tpl = TEMPLATES[type] || TEMPLATES['提问求助'];
-      if (titleEl) titleEl.value = tpl.title;
-      if (bodyEl) bodyEl.value = tpl.body;
-      if (refDescEl) refDescEl.value = '';
-      if (refUrlEl) refUrlEl.value = '';
+      postFormMode = null;
       alert('发布成功！');
       await loadAll(true);
     } else {
-      console.error('[发布失败] 飞书返回:', resp);
       alert('发布失败：' + (resp.msg || resp.error || '未知错误'));
     }
   } catch(e) {
-    console.error('[发布异常]', e);
     alert('发布失败：' + (e.message || '网络错误，请重试'));
   } finally {
     _releaseLock();
-    if (btn) { btn.disabled = false; btn.textContent = '发布'; }
+    if (btn) { btn.disabled = false; btn.textContent = '🚀 发布'; }
+    renderCurrentTab();
   }
 }
 
-// ===================== 创建弹窗 =====================
-function openCreate(mode) {
-  createMode = mode;
-  const modal = document.getElementById('create-modal');
-  document.getElementById('create-modal-title').textContent = mode === '提问求助' ? '🙋 发起提问' : '💡 分享经验';
-  document.getElementById('create-content-type').value = mode;
-  
-  // 加载模板
-  const tpl = TEMPLATES[mode];
-  document.getElementById('create-title').value = tpl.title;
-  document.getElementById('create-body').value = tpl.body;
-  
-  onCreateTypeChange();
-  modal.style.display = 'block';
+// ===================== 我的 =====================
+function renderMine(container) {
+  const myPosts = allPosts.filter(p => p[F_MAIN.author] === currentUser.name);
+  const isAdmin = ADMINS.includes(currentUser.name);
+
+  container.innerHTML = `
+    <div class="export-bar" id="export-bar-mine" style="${isAdmin ? '' : 'display:none;'}">
+      <button class="btn btn-sm btn-ghost" onclick="exportCSV()">📥 导出数据（CSV）</button>
+    </div>
+    <div style="margin-bottom:14px;">
+      <span style="font-weight:700;font-size:15px;">我的帖子</span>
+      <span style="color:var(--gray-500);font-size:13px;margin-left:8px;">共 ${myPosts.length} 条</span>
+    </div>
+    <div class="card-list" id="mine-list">
+      ${myPosts.length === 0 ? '<div class="empty"><div class="icon">📝</div>你还没有发布过帖子</div>' : ''}
+    </div>
+  `;
+
+  if (myPosts.length > 0) {
+    const listEl = document.getElementById('mine-list');
+    listEl.innerHTML = myPosts.map(p => renderCard(p)).join('');
+
+    // 追加回答
+    myPosts.forEach(p => {
+      const answers = answersByPost[p.id] || [];
+      if (answers.length > 0) {
+        const cardEl = document.getElementById('card-' + p.id);
+        if (cardEl && !cardEl.querySelector('.answers-inline')) {
+          cardEl.insertAdjacentHTML('beforeend', renderAnswersInline(answers));
+        }
+      }
+    });
+  }
 }
 
-function closeCreate() {
-  document.getElementById('create-modal').style.display = 'none';
-}
-
-function onCreateTypeChange() {
-  const type = document.getElementById('create-content-type').value;
-  const tags = TAGS[type] || [];
-  const container = document.getElementById('create-tags');
-  container.innerHTML = tags.map(t => `
-    <div class="tag-btn selected" data-tag="${t}" onclick="this.classList.toggle('selected')">${t}</div>
-  `).join('');
-}
-
-function getCreateSelectedTags() {
-  return [...document.querySelectorAll('#create-tags .tag-btn.selected')].map(e => e.dataset.tag);
-}
-
-function getCreateSelectedType() {
-  return document.getElementById('create-content-type').value;
-}
-
-// ===================== Tab 切换 =====================
-function switchTab(tab, el) {
-  currentTab = tab;
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  el.classList.add('active');
-  renderAll();
-}
-
-// ===================== 渲染 =====================
-function renderAll() {
-  renderEntryCards();
-  renderCards();
-}
-
-function renderCards() {
-  let posts = [...allPosts];
-  if (currentTab === '提问求助') posts = posts.filter(p => p[F_MAIN.contentType] === '提问求助');
-  if (currentTab === '经验分享') posts = posts.filter(p => p[F_MAIN.contentType] === '经验分享');
-  if (currentTab === 'mine') posts = posts.filter(p => p[F_MAIN.author] === currentUser.name);
-
-  const container = document.getElementById('card-list');
-  if (posts.length === 0) {
-    container.innerHTML = '<div class="empty"><div class="icon">📭</div>暂无内容，来发第一条吧！</div>';
+function updateMineBadge() {
+  if (currentMainTab === 'mine') {
+    // 当前正在看"我的"，不计通知
+    _lastSeenTimestamp = Date.now();
+    localStorage.setItem('ai_camp_last_seen', _lastSeenTimestamp);
+    document.getElementById('mine-badge').style.display = 'none';
     return;
   }
 
-  container.innerHTML = posts.map(p => {
-    const html = renderCard(p);
-    // 如果有回答，追加回答区域
-    const answers = answersByPost[p.id] || [];
-    const isQ = p[F_MAIN.contentType] === '提问求助';
-    if (isQ && answers.length > 0) {
-      return html.replace('</div>', renderAnswersInline(answers) + '</div>');
+  // 检查是否有新的回复（在我的帖子上）
+  const myPostIds = new Set(allPosts.filter(p => p[F_MAIN.author] === currentUser.name).map(p => p.id));
+  let newReplies = 0;
+  allAnswers.forEach(a => {
+    if (myPostIds.has(a[F_ANSWER.linkId])) {
+      const answerTime = new Date(a[F_ANSWER.time]).getTime();
+      if (answerTime > _lastSeenTimestamp) newReplies++;
     }
-    return html;
-  }).join('');
+  });
+
+  const badge = document.getElementById('mine-badge');
+  if (newReplies > 0) {
+    badge.style.display = 'block';
+    badge.className = 'tab-badge';
+  } else {
+    badge.style.display = 'none';
+  }
 }
 
-function renderCard(p) {
+// ===================== 卡片渲染 =====================
+function renderCard(p, showAnswersBtn = true) {
   const isQ = p[F_MAIN.contentType] === '提问求助';
   const badgeClass = isQ ? 'badge-q' : 'badge-s';
   const badgeText = isQ ? '❓ 提问' : '💡 分享';
@@ -726,11 +787,11 @@ function renderCard(p) {
       ${tags ? '<div>' + tags + '</div>' : ''}
       <div class="card-actions">
         <button class="like-btn ${hasLiked(p.id)?'liked':''}" onclick="event.stopPropagation();likePost('${p.id}')">👍 ${p[F_MAIN.likes] || 0}</button>
-        ${isQ ? `<span class="answer-count" onclick="openDetail('${p.id}')">💬 ${answerCount} 条回答</span>` : ''}
+        ${showAnswersBtn ? `<span class="answer-count" onclick="event.stopPropagation();openDetail('${p.id}')">💬 ${answerCount} 条回答</span>` : ''}
+        <button class="btn btn-sm btn-ghost" onclick="event.stopPropagation();openDetail('${p.id}')" style="margin-left:auto;">💬 回答</button>
         ${isAdmin ? `<button class="op-btn op-pin" onclick="event.stopPropagation();togglePin('${p.id}')">${p[F_MAIN.pinned]===true?'取消置顶':'📌 置顶'}</button>` : ''}
         ${isAdmin ? `<button class="op-btn op-hide" onclick="event.stopPropagation();toggleHide('${p.id}')">隐藏</button>` : ''}
         ${isAuthor ? `<button class="op-btn op-delete" onclick="event.stopPropagation();deletePost('${p.id}')">🗑 删除</button>` : ''}
-        ${isQ ? `<button class="btn btn-sm btn-ghost" onclick="event.stopPropagation();openDetail('${p.id}')">💬 回答</button>` : ''}
       </div>
     </div>
   `;
@@ -747,7 +808,7 @@ function renderAnswersInline(answers) {
         <div class="answer-item">
           <div class="answer-meta">
             👤 ${a[F_ANSWER.author]} · ${a[F_ANSWER.group]} · 🕐 ${formatTime(a[F_ANSWER.time])}
-            ${isAnswerAuthor ? `<button class="op-btn op-delete" style="float:right;margin-left:8px;" onclick="event.stopPropagation();deleteAnswer('${a.id}','${postId}')">🗑 删除</button>` : ''}
+            ${isAnswerAuthor ? `<button class="op-btn op-delete" style="margin-left:auto;" onclick="event.stopPropagation();deleteAnswer('${a.id}','${postId}')">🗑 删除</button>` : ''}
           </div>
           <div class="answer-body">${escapeHtml(a[F_ANSWER.body] || '')}</div>
           ${a[F_ANSWER.refUrl] ? `<div class="answer-ref">📎 <a href="${escapeHtml(a[F_ANSWER.refUrl])}" target="_blank">${escapeHtml(a[F_ANSWER.refDesc]||'参考资料')}</a></div>` : ''}
@@ -761,7 +822,6 @@ function renderAnswersInline(answers) {
 function openDetail(id) {
   const post = allPosts.find(p => p.id === id);
   if (!post) return;
-  currentDetail = post;
   const answers = answersByPost[id] || [];
   const isQ = post[F_MAIN.contentType] === '提问求助';
 
@@ -771,20 +831,19 @@ function openDetail(id) {
     </div>
     <h2 style="margin-bottom:8px;">${escapeHtml(post[F_MAIN.title]||'')}</h2>
     <div class="card-meta">👤 ${post[F_MAIN.author]} · ${post[F_MAIN.group]} · 🕐 ${formatTime(post[F_MAIN.time])} · 分类：${post[F_MAIN.tag]||'无'}</div>
-    <div class="card-body" style="margin-top:14px;white-space:pre-wrap;">${escapeHtml(post[F_MAIN.body]||'')}</div>
-    <div class="card-actions" style="margin-bottom:16px;">
+    <div style="margin-top:14px;white-space:pre-wrap;font-size:14px;line-height:1.6;">${escapeHtml(post[F_MAIN.body]||'')}</div>
+    <div class="card-actions" style="margin-top:12px;margin-bottom:16px;">
       <button class="like-btn ${hasLiked(post.id)?'liked':''}" onclick="likePost('${post.id}')">👍 ${post[F_MAIN.likes]||0}</button>
     </div>
-    ${isQ ? `
-      <div class="answers-section" style="border-top:1px solid var(--gray-100);padding-top:14px;">
+    <div style="border-top:1px solid var(--gray-100);padding-top:14px;">
         <h4 style="margin-bottom:12px;">💬 回答（${answers.length}）</h4>
         ${answers.map(a => {
           const isAnswerAuthor = a[F_ANSWER.author] === currentUser.name;
           return `
-          <div class="answer-item" style="padding:10px 0;border-bottom:1px solid var(--gray-100);">
-            <div style="font-size:12px;color:var(--gray-500);margin-bottom:4px;">
+          <div style="padding:10px 0;border-bottom:1px solid var(--gray-100);">
+            <div style="font-size:12px;color:var(--gray-500);margin-bottom:4px;display:flex;align-items:center;gap:6px;">
               👤 ${a[F_ANSWER.author]} · ${a[F_ANSWER.group]} · 🕐 ${formatTime(a[F_ANSWER.time])}
-              ${isAnswerAuthor ? `<button class="op-btn op-delete" style="float:right;" onclick="event.stopPropagation();deleteAnswer('${a.id}','${id}')">🗑 删除</button>` : ''}
+              ${isAnswerAuthor ? `<button class="op-btn op-delete" style="margin-left:auto;" onclick="event.stopPropagation();deleteAnswer('${a.id}','${id}')">🗑 删除</button>` : ''}
             </div>
             <div style="font-size:14px;line-height:1.6;white-space:pre-wrap;">${escapeHtml(a[F_ANSWER.body]||'')}</div>
             ${a[F_ANSWER.refUrl] ? `<div style="font-size:12px;color:var(--primary);margin-top:4px;">📎 <a href="${escapeHtml(a[F_ANSWER.refUrl])}" target="_blank">${escapeHtml(a[F_ANSWER.refDesc]||'参考资料')}</a></div>` : ''}
@@ -795,69 +854,21 @@ function openDetail(id) {
           <button class="btn btn-primary btn-sm" onclick="submitAnswer('${id}')">提交回答</button>
         </div>
       </div>
-    ` : ''}
   `;
   document.getElementById('detail-modal').style.display = 'block';
 }
 
 function closeDetail() {
   document.getElementById('detail-modal').style.display = 'none';
-  currentDetail = null;
 }
 
-// ===================== 提交 =====================
-async function submitFromModal() {
-  if (!_acquireLock('正在提交中，请稍候...')) return;
-  const btn = document.querySelector('#create-modal .btn-primary');
-  if (btn) { btn.disabled = true; btn.textContent = '提交中...'; }
-  const type = getCreateSelectedType();
-  const title = document.getElementById('create-title').value.trim();
-  const body = document.getElementById('create-body').value.trim();
-  const tags = getCreateSelectedTags();
-  if (!title) { alert('请填写标题'); return; }
-  if (!body) { alert('请填写正文'); return; }
-
-  const now = new Date().toISOString().replace('T', ' ').slice(0, 16);
-  const fields = {};
-  fields[F_MAIN.contentType] = type;
-  fields[F_MAIN.author] = currentUser.name;
-  fields[F_MAIN.group] = currentUser.group;
-  fields[F_MAIN.time] = now;
-  fields[F_MAIN.tag] = tags.join(', ');
-  fields[F_MAIN.title] = title;
-  fields[F_MAIN.body] = body;
-  fields[F_MAIN.status] = type === '提问求助' ? '待回答' : '已解决';
-  fields[F_MAIN.likes] = 0;
-  fields[F_MAIN.answers] = 0;
-  fields[F_MAIN.pinned] = false;
-  fields[F_MAIN.hidden] = false;
-
-  try {
-    const resp = await apiCall(`/bitable/v1/apps/${CONFIG.appToken}/tables/${CONFIG.mainTable}/records`, {
-      method: 'POST',
-      body: JSON.stringify({ fields })
-    });
-    if (resp.code === 0) {
-      alert('发布成功！');
-      closeCreate();
-      await loadAll(true);
-    } else {
-      alert('发布失败：' + (resp.msg || '未知错误'));
-    }
-  } catch(e) {
-    alert('网络错误，请重试');
-  } finally {
-    _releaseLock();
-    if (btn) { btn.disabled = false; btn.textContent = '发布'; }
-  }
-}
-
+// ===================== 提交回答 =====================
 async function submitAnswer(postId) {
   if (!_acquireLock('正在提交中，请稍候...')) return;
   const btn = document.querySelector('.reply-box .btn-primary');
   if (btn) { btn.disabled = true; btn.textContent = '提交中...'; }
   const body = document.getElementById('reply-input').value.trim();
-  if (!body) { alert('请填写回答内容'); return; }
+  if (!body) { alert('请填写回答内容'); _releaseLock(); if (btn) { btn.disabled = false; btn.textContent = '提交回答'; } return; }
 
   const now = new Date().toISOString();
   const fields = {};
@@ -870,19 +881,16 @@ async function submitAnswer(postId) {
 
   try {
     const resp = await apiCall(`/bitable/v1/apps/${CONFIG.appToken}/tables/${CONFIG.answerTable}/records`, {
-      method: 'POST',
-      body: JSON.stringify({ fields })
+      method: 'POST', body: JSON.stringify({ fields })
     });
     if (resp.code === 0) {
-      // 更新主表回答数
       const post = allPosts.find(p => p.id === postId);
       if (post) {
-        const curCount = parseInt(post[F_MAIN.answers]) || 0;
+        const curCount = (answersByPost[postId] || []).length;
         const updateFields = {};
         updateFields[F_MAIN.answers] = curCount + 1;
         await apiCall(`/bitable/v1/apps/${CONFIG.appToken}/tables/${CONFIG.mainTable}/records/${postId}`, {
-          method: 'PUT',
-          body: JSON.stringify({ fields: updateFields })
+          method: 'PUT', body: JSON.stringify({ fields: updateFields })
         });
       }
       alert('回答成功！');
@@ -924,8 +932,8 @@ async function likePost(id) {
       method: 'PUT', body: JSON.stringify({ fields: updateFields })
     });
     post[F_MAIN.likes] = newCount;
-    renderCards();
-    syncScores();  // 点赞影响积分
+    renderCurrentTab();
+    syncScores();
   } catch(e) { console.error(e); }
   _releaseLock();
 }
@@ -965,17 +973,11 @@ async function deletePost(id) {
   if (post[F_MAIN.author] !== currentUser.name) { alert('只能删除自己的帖子'); _releaseLock(); return; }
   if (!confirm('确定要删除这条帖子吗？此操作不可撤销。')) { _releaseLock(); return; }
   try {
-    // 先删除关联的回答
     const answers = answersByPost[id] || [];
     for (const a of answers) {
-      await apiCall(`/bitable/v1/apps/${CONFIG.appToken}/tables/${CONFIG.answerTable}/records/${a.id}`, {
-        method: 'DELETE'
-      });
+      await apiCall(`/bitable/v1/apps/${CONFIG.appToken}/tables/${CONFIG.answerTable}/records/${a.id}`, { method: 'DELETE' });
     }
-    // 再删除帖子本身
-    await apiCall(`/bitable/v1/apps/${CONFIG.appToken}/tables/${CONFIG.mainTable}/records/${id}`, {
-      method: 'DELETE'
-    });
+    await apiCall(`/bitable/v1/apps/${CONFIG.appToken}/tables/${CONFIG.mainTable}/records/${id}`, { method: 'DELETE' });
     await loadAll(true);
   } catch(e) { console.error('删除失败:', e); alert('删除失败，请重试'); }
   finally { _releaseLock(); }
@@ -984,30 +986,23 @@ async function deletePost(id) {
 async function deleteAnswer(answerId, postId) {
   if (!_acquireLock('正在处理中，请稍候...')) return;
   if (!confirm('确定要删除这条回答吗？此操作不可撤销。')) { _releaseLock(); return; }
-
-  // 1. 立即从内存中移除，前端瞬间刷新
   allAnswers = allAnswers.filter(a => a.id !== answerId);
   answersByPost[postId] = (answersByPost[postId] || []).filter(a => a.id !== answerId);
   const post = allPosts.find(p => p.id === postId);
   if (post) {
-    const curCount = Math.max(0, (parseInt(post[F_MAIN.answers]) || 0) - 1);
+    const curCount = Math.max(0, (answersByPost[postId] || []).length);
     post[F_MAIN.answers] = curCount;
   }
   loadRanks();
-  renderAll();
-
-  // 2. 异步同步到后端
+  renderCurrentTab();
   try {
-    await apiCall(`/bitable/v1/apps/${CONFIG.appToken}/tables/${CONFIG.answerTable}/records/${answerId}`, {
-      method: 'DELETE'
-    });
+    await apiCall(`/bitable/v1/apps/${CONFIG.appToken}/tables/${CONFIG.answerTable}/records/${answerId}`, { method: 'DELETE' });
     if (post) {
-      const curCount = post[F_MAIN.answers];  // 内存中已更新
       await apiCall(`/bitable/v1/apps/${CONFIG.appToken}/tables/${CONFIG.mainTable}/records/${postId}`, {
-        method: 'PUT', body: JSON.stringify({ fields: { [F_MAIN.answers]: curCount } })
+        method: 'PUT', body: JSON.stringify({ fields: { [F_MAIN.answers]: post[F_MAIN.answers] } })
       });
     }
-    await loadAll(true);    // 最终从后端拉取确认（含 syncScores）
+    await loadAll(true);
   } catch(e) { console.error('删除回答失败:', e); alert('删除失败，请重试'); }
   finally { _releaseLock(); }
 }
@@ -1026,7 +1021,6 @@ function loadRanks() {
   renderRank('rank-share', sRank);
   renderRank('rank-group', gScore);
 
-  // 回答榜从答案数据算
   const aRank = {};
   allAnswers.forEach(a => {
     const name = a[F_ANSWER.author];
@@ -1037,6 +1031,7 @@ function loadRanks() {
 
 function renderRank(elId, obj) {
   const el = document.getElementById(elId);
+  if (!el) return;
   const sorted = Object.entries(obj).sort((a,b) => b[1] - a[1]).slice(0, 3);
   el.innerHTML = sorted.map(([name, score], i) => `
     <div class="rank-item">
@@ -1047,10 +1042,9 @@ function renderRank(elId, obj) {
   `).join('') || '<div style="color:#9ca3af;font-size:13px;">暂无数据</div>';
 }
 
-// ========== 积分自动同步到后端映射表 ==========
+// ===================== 积分自动同步 =====================
 async function syncScores() {
-  // 计算每个成员的积分
-  const stats = {}; // { name: { group, question, answer, share, liked } }
+  const stats = {};
   allPosts.forEach(p => {
     const name = p[F_MAIN.author];
     const grp  = p[F_MAIN.group];
@@ -1067,7 +1061,6 @@ async function syncScores() {
     stats[name].answer++;
   });
 
-  // 计算总积分与排名
   const scored = Object.entries(stats).map(([name, s]) => {
     const total = s.question * 1 + s.answer * 2 + s.share * 3 + s.liked * 1;
     return { name, group: s.group, question: s.question, answer: s.answer, share: s.share, liked: s.liked, total };
@@ -1077,7 +1070,6 @@ async function syncScores() {
   const byAnswer = [...scored].sort((a, b) => b.answer - a.answer);
   byAnswer.forEach((s, i) => { s.aRank = i + 1; });
 
-  // 获取积分表现有记录，按姓名建索引
   let existingMap = {};
   try {
     const resp = await apiCall(`/bitable/v1/apps/${CONFIG.appToken}/tables/${CONFIG.scoreTable}/records?page_size=200`);
@@ -1089,28 +1081,20 @@ async function syncScores() {
     }
   } catch(e) { console.warn('获取积分表失败，跳过同步:', e); return; }
 
-  // 逐成员写入
   for (const s of scored) {
     const rid = existingMap[s.name];
     const fields = {
-      [F_SCORE.name]:     s.name,
-      [F_SCORE.group]:    s.group,
-      [F_SCORE.question]: s.question,
-      [F_SCORE.answer]:   s.answer,
-      [F_SCORE.share]:    s.share,
-      [F_SCORE.liked]:    s.liked,
-      [F_SCORE.total]:    s.total,
-      [F_SCORE.qRank]:    s.qRank,
-      [F_SCORE.aRank]:    s.aRank,
+      [F_SCORE.name]: s.name, [F_SCORE.group]: s.group,
+      [F_SCORE.question]: s.question, [F_SCORE.answer]: s.answer,
+      [F_SCORE.share]: s.share, [F_SCORE.liked]: s.liked,
+      [F_SCORE.total]: s.total, [F_SCORE.qRank]: s.qRank, [F_SCORE.aRank]: s.aRank,
     };
     try {
       if (rid) {
-        // 更新已有记录
         await apiCall(`/bitable/v1/apps/${CONFIG.appToken}/tables/${CONFIG.scoreTable}/records/${rid}`, {
           method: 'PUT', body: JSON.stringify({ fields })
         });
       } else {
-        // 新增记录
         await apiCall(`/bitable/v1/apps/${CONFIG.appToken}/tables/${CONFIG.scoreTable}/records`, {
           method: 'POST', body: JSON.stringify({ fields })
         });
@@ -1147,7 +1131,7 @@ function escapeHtml(str) {
 // ===================== API =====================
 async function apiCall(endpoint, options = {}) {
   const url = API_BASE_URL + endpoint;
-  console.log('[API] →', options.method || 'GET', url, options.body ? JSON.parse(options.body) : '');
+  console.log('[API] →', options.method || 'GET', url);
   const resp = await fetch(url, {
     ...options,
     headers: { 'Content-Type': 'application/json', ...options.headers }
@@ -1155,10 +1139,8 @@ async function apiCall(endpoint, options = {}) {
   const text = await resp.text();
   let data;
   try { data = JSON.parse(text); } catch(e) { data = { raw: text }; }
-  console.log('[API] ← status', resp.status, data);
-  if (!resp.ok) {
-    throw new Error('HTTP ' + resp.status + ': ' + (data.msg || data.error || text));
-  }
+  console.log('[API] ← status', resp.status);
+  if (!resp.ok) throw new Error('HTTP ' + resp.status + ': ' + (data.msg || data.error || text));
   return data;
 }
 
