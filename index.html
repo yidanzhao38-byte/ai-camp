@@ -134,6 +134,7 @@ body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
 .card-actions .op-btn { font-size: 12px; padding: 4px 10px; border-radius: 6px; border: none; cursor: pointer; }
 .op-pin { background: #fef3c7; color: #92400e; }
 .op-hide { background: #fee2e2; color: #991b1b; }
+.op-delete { background: #fce7f3; color: #9d174d; }
 
 /* ========== 回答区（卡片内自动展示） ========== */
 .answers-inline { margin-top: 14px; border-top: 1px solid var(--gray-100); padding-top: 12px; }
@@ -179,6 +180,8 @@ body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
     <p>请填写你的信息，后续操作将自动带入</p>
     <label>姓名</label>
     <input id="modal-name" type="text" placeholder="请输入你的姓名">
+    <label>OA账号</label>
+    <input id="modal-oa" type="text" placeholder="请输入你的OA账号（如 zhangsan）">
     <label>所属小组</label>
     <select id="modal-group">
       <option value="">请选择小组</option>
@@ -343,11 +346,11 @@ const TAGS = {
 const TEMPLATES = {
   '提问求助': {
     title: '请简要描述你的问题',
-    body: '### 📋 问题背景\n（描述你遇到的场景）\n\n### ❓ 具体问题\n（详细描述你的疑问）\n\n### 🔧 已尝试的方法\n（如果已经尝试过某些方法，请说明）\n\n### 💡 期望得到的帮助\n（描述你希望获得什么样的解答）'
+    body: '📋 问题背景\n（描述你遇到的场景）\n\n❓ 具体问题\n（详细描述你的疑问）\n\n🔧 已尝试的方法\n（如果已经尝试过某些方法，请说明）\n\n💡 期望得到的帮助\n（描述你希望获得什么样的解答）'
   },
   '经验分享': {
     title: '请简要描述你的经验主题',
-    body: '### 🎯 应用场景\n（描述在什么场景下应用）\n\n### 💡 方法/技巧\n（详细分享你的经验或技巧）\n\n### ✨ 取得效果\n（分享实践后的效果或成果）\n\n### ⚠️ 注意事项\n（有哪些需要注意的地方）'
+    body: '🎯 应用场景\n（描述在什么场景下应用）\n\n💡 方法/技巧\n（详细分享你的经验或技巧）\n\n✨ 取得效果\n（分享实践后的效果或成果）\n\n⚠️ 注意事项\n（有哪些需要注意的地方）'
   }
 };
 
@@ -369,9 +372,10 @@ function loadIdentity() {
 
 function saveIdentity() {
   const name = document.getElementById('modal-name').value.trim();
+  const oa = document.getElementById('modal-oa').value.trim();
   const group = document.getElementById('modal-group').value;
   if (!name || !group) { alert('请填写姓名并选择小组'); return; }
-  currentUser = { name, group };
+  currentUser = { name, oa, group };
   localStorage.setItem('ai_camp_user', JSON.stringify(currentUser));
   initApp();
 }
@@ -676,6 +680,7 @@ function renderCard(p) {
   const tags = (p[F_MAIN.tag] || '').split(',').filter(Boolean).map(t => `<span class="card-tag">${t.trim()}</span>`).join('');
   const answerCount = parseInt(p[F_MAIN.answers]) || 0;
   const isAdmin = ADMINS.includes(currentUser.name);
+  const isAuthor = p[F_MAIN.author] === currentUser.name;
 
   return `
     <div class="content-card ${pinnedClass}" id="card-${p.id}">
@@ -691,6 +696,7 @@ function renderCard(p) {
         ${isQ ? `<span class="answer-count" onclick="openDetail('${p.id}')">💬 ${answerCount} 条回答</span>` : ''}
         ${isAdmin ? `<button class="op-btn op-pin" onclick="event.stopPropagation();togglePin('${p.id}')">${p[F_MAIN.pinned]===true?'取消置顶':'📌 置顶'}</button>` : ''}
         ${isAdmin ? `<button class="op-btn op-hide" onclick="event.stopPropagation();toggleHide('${p.id}')">隐藏</button>` : ''}
+        ${isAuthor ? `<button class="op-btn op-delete" onclick="event.stopPropagation();deletePost('${p.id}')">🗑 删除</button>` : ''}
         ${isQ ? `<button class="btn btn-sm btn-ghost" onclick="event.stopPropagation();openDetail('${p.id}')">💬 回答</button>` : ''}
       </div>
     </div>
@@ -890,6 +896,27 @@ async function toggleHide(id) {
     });
     await loadAll();
   } catch(e) { console.error(e); }
+}
+
+async function deletePost(id) {
+  const post = allPosts.find(p => p.id === id);
+  if (!post) return;
+  if (post[F_MAIN.author] !== currentUser.name) { alert('只能删除自己的帖子'); return; }
+  if (!confirm('确定要删除这条帖子吗？此操作不可撤销。')) return;
+  try {
+    // 先删除关联的回答
+    const answers = answersByPost[id] || [];
+    for (const a of answers) {
+      await apiCall(`/bitable/v1/apps/${CONFIG.appToken}/tables/${CONFIG.answerTable}/records/${a.id}`, {
+        method: 'DELETE'
+      });
+    }
+    // 再删除帖子本身
+    await apiCall(`/bitable/v1/apps/${CONFIG.appToken}/tables/${CONFIG.mainTable}/records/${id}`, {
+      method: 'DELETE'
+    });
+    await loadAll();
+  } catch(e) { console.error('删除失败:', e); alert('删除失败，请重试'); }
 }
 
 // ===================== 排行榜 =====================
