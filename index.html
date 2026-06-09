@@ -711,7 +711,7 @@ function renderCard(p) {
   const pinnedTag = p[F_MAIN.pinned] === true ? '<span class="pinned-tag">📌 置顶</span>' : '';
   const pinnedClass = p[F_MAIN.pinned] === true ? 'pinned' : '';
   const tags = (p[F_MAIN.tag] || '').split(',').filter(Boolean).map(t => `<span class="card-tag">${t.trim()}</span>`).join('');
-  const answerCount = parseInt(p[F_MAIN.answers]) || 0;
+  const answerCount = (answersByPost[p.id] || []).length;
   const isAdmin = ADMINS.includes(currentUser.name);
   const isAuthor = p[F_MAIN.author] === currentUser.name;
 
