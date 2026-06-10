@@ -216,8 +216,8 @@ body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
     <p>请填写你的信息，后续操作将自动带入</p>
     <label>姓名</label>
     <input id="modal-name" type="text" placeholder="请输入你的姓名">
-    <label>OA账号</label>
-    <input id="modal-oa" type="text" placeholder="请输入你的OA账号（如 zhangsan）">
+    <label>OA账号（运营组成员需输入指定OA以获取管理权限）</label>
+    <input id="modal-oa" type="text" placeholder="请输入你的OA账号">
     <label>所属小组</label>
     <select id="modal-group">
       <option value="">请选择小组</option>
@@ -244,7 +244,7 @@ body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
     <div class="user-bar">
       <div class="avatar" id="header-avatar"></div>
       <div>
-        <div id="header-name" style="font-weight:600;"></div>
+        <div id="header-name" style="font-weight:600;display:flex;align-items:center;gap:6px;"></div>
         <div id="header-group" style="font-size:12px;opacity:0.85;"></div>
       </div>
       <button class="btn-switch" onclick="logout()">切换</button>
@@ -295,7 +295,19 @@ const CONFIG = {
   scoreTable: 'tblKxQwDNatv4ycs',
 };
 
-const ADMINS = ['赵一丹', '陈子昂', '佘紫薇'];
+// 管理员 OA 验证：姓名必须与 OA 账号一一对应才能获得管理员权限
+const ADMIN_OA_MAP = {
+  '赵一丹': 'zhaoyidan01-gly',
+  '陈子昂': 'chenziang-gly',
+  '佘紫薇': 'sheziwei-gly'
+};
+const ADMIN_NAMES = Object.keys(ADMIN_OA_MAP);
+
+function isAdminName(name) { return Object.prototype.hasOwnProperty.call(ADMIN_OA_MAP, name); }
+function verifyAdmin(name, oa) {
+  if (!isAdminName(name)) return false;
+  return (oa || '').trim().toLowerCase() === ADMIN_OA_MAP[name];
+}
 
 const F_MAIN = {
   contentId: '内容ID', contentType:'内容类型', tag: '分类标签',
@@ -350,7 +362,15 @@ let _lastSeenTimestamp = 0;  // 上次查看"我的"的时间戳
 // ===================== 身份管理 =====================
 function loadIdentity() {
   const saved = localStorage.getItem('ai_camp_user');
-  if (saved) { currentUser = JSON.parse(saved); return true; }
+  if (saved) {
+    currentUser = JSON.parse(saved);
+    // 兼容旧版：如果 isAdmin 未定义，重新验证 OA
+    if (currentUser.isAdmin === undefined) {
+      currentUser.isAdmin = verifyAdmin(currentUser.name, currentUser.oa);
+      localStorage.setItem('ai_camp_user', JSON.stringify(currentUser));
+    }
+    return true;
+  }
   return false;
 }
 
@@ -358,8 +378,17 @@ function saveIdentity() {
   const name = document.getElementById('modal-name').value.trim();
   const oa = document.getElementById('modal-oa').value.trim();
   const group = document.getElementById('modal-group').value;
-  if (!name || !group) { alert('请填写姓名并选择小组'); return; }
-  currentUser = { name, oa, group };
+  if (!name) { alert('请填写姓名'); return; }
+  if (!oa) { alert('请填写OA账号'); return; }
+  if (!group) { alert('请选择小组'); return; }
+
+  // OA 验证：管理员姓名的用户必须输入正确的 OA 才能获得管理员权限
+  const isAdmin = verifyAdmin(name, oa);
+  if (isAdminName(name) && !isAdmin) {
+    if (!confirm('⚠️ 你的OA账号与管理员信息不匹配。\n\n将作为普通用户进入看板，无法使用运营管理功能。\n\n是否继续？')) return;
+  }
+
+  currentUser = { name, oa, group, isAdmin };
   localStorage.setItem('ai_camp_user', JSON.stringify(currentUser));
   initApp();
 }
@@ -373,7 +402,7 @@ function logout() {
 function initApp() {
   document.getElementById('identity-modal').style.display = 'none';
   document.getElementById('app').style.display = 'block';
-  document.getElementById('header-name').textContent = currentUser.name;
+  document.getElementById('header-name').innerHTML = currentUser.name + (currentUser.isAdmin ? ' <span style="background:#fbbf24;color:#78350f;font-size:10px;padding:2px 6px;border-radius:4px;font-weight:700;">管理员</span>' : '');
   document.getElementById('header-group').textContent = currentUser.group;
   document.getElementById('header-avatar').textContent = currentUser.name[0];
   _lastSeenTimestamp = parseInt(localStorage.getItem('ai_camp_last_seen') || '0');
@@ -518,7 +547,7 @@ function renderHome(container) {
 function renderFeatured() {
   const featuredPosts = allPosts.filter(p => {
     // 精华帖 = 管理员发布的 OR 管理员置顶的内容
-    return ADMINS.includes(p[F_MAIN.author]) || p[F_MAIN.pinned] === true;
+    return ADMIN_NAMES.includes(p[F_MAIN.author]) || p[F_MAIN.pinned] === true;
   });
 
   const container = document.getElementById('featured-list');
@@ -532,7 +561,7 @@ function renderFeatured() {
 
 // ===================== 互动 =====================
 function renderInteract(container) {
-  const isAdmin = ADMINS.includes(currentUser.name);
+  const isAdmin = currentUser.isAdmin === true;
 
   container.innerHTML = `
     <!-- 排序切换 -->
@@ -733,7 +762,7 @@ async function submitPostForm(mode) {
 // ===================== 我的 =====================
 function renderMine(container) {
   const myPosts = allPosts.filter(p => p[F_MAIN.author] === currentUser.name);
-  const isAdmin = ADMINS.includes(currentUser.name);
+  const isAdmin = currentUser.isAdmin === true;
 
   container.innerHTML = `
     <div style="margin-bottom:14px;">
@@ -799,7 +828,7 @@ function renderCard(p, showAnswersBtn = true) {
   const pinnedClass = p[F_MAIN.pinned] === true ? 'pinned' : '';
   const tags = (p[F_MAIN.tag] || '').split(',').filter(Boolean).map(t => `<span class="card-tag">${t.trim()}</span>`).join('');
   const answerCount = (answersByPost[p.id] || []).length;
-  const isAdmin = ADMINS.includes(currentUser.name);
+  const isAdmin = currentUser.isAdmin === true;
   const isAuthor = p[F_MAIN.author] === currentUser.name;
 
   return `
@@ -1008,7 +1037,7 @@ async function likeAnswer(answerId) {
 
 // ===================== 运营操作 =====================
 async function togglePin(id) {
-  if (!ADMINS.includes(currentUser.name)) return;
+  if (!currentUser.isAdmin) return;
   const post = allPosts.find(p => p.id === id);
   if (!post) return;
   const isPinned = post[F_MAIN.pinned] === true;
@@ -1023,7 +1052,7 @@ async function togglePin(id) {
 }
 
 async function toggleHide(id) {
-  if (!ADMINS.includes(currentUser.name)) return;
+  if (!currentUser.isAdmin) return;
   try {
     const updateFields = {};
     updateFields[F_MAIN.hidden] = true;
