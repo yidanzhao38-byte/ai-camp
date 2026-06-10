@@ -120,7 +120,7 @@ body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
 /* ========== 内容卡片列表 ========== */
 .card-list { display: flex; flex-direction: column; gap: 14px; }
 /* 瀑布流布局（首页精华帖 + 互动帖） */
-.card-waterfall { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; align-items: start; }
+.card-waterfall { display: grid; grid-template-columns: repeat(4, 1fr); column-gap: 14px; row-gap: 0; align-items: start; }
 .card-waterfall .content-card { /* grid item 无需额外处理 */ }
 .content-card { background: white; border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); border-left: 4px solid var(--primary); position: relative; }
 .content-card.pinned { border-left-color: var(--warning); background: #fffbeb; }
