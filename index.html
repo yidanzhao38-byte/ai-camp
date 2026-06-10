@@ -138,6 +138,10 @@ body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
 .card-actions .like-btn { display: flex; align-items: center; gap: 5px; padding: 5px 12px; border-radius: 20px; border: 1px solid var(--gray-200); background: white; cursor: pointer; font-size: 13px; transition: 0.2s; }
 .card-actions .like-btn:hover { border-color: var(--danger); color: var(--danger); }
 .card-actions .like-btn.liked { background: #fef2f2; border-color: var(--danger); color: var(--danger); }
+/* 回答内小号点赞按钮 */
+.like-btn-sm { display: inline-flex; align-items: center; gap: 3px; padding: 2px 8px; border-radius: 12px; border: 1px solid var(--gray-200); background: white; cursor: pointer; font-size: 11px; transition: 0.2s; color: var(--gray-500); }
+.like-btn-sm:hover { border-color: var(--danger); color: var(--danger); }
+.like-btn-sm.liked { background: #fef2f2; border-color: var(--danger); color: var(--danger); }
 .card-actions .answer-count { font-size: 13px; color: var(--gray-500); cursor: pointer; display: flex; align-items: center; gap: 4px; }
 .card-actions .answer-count:hover { color: var(--primary); }
 .op-btn { font-size: 12px; padding: 4px 10px; border-radius: 6px; border: none; cursor: pointer; }
@@ -834,6 +838,9 @@ function renderAnswersInline(answers) {
           </div>
           <div class="answer-body">${escapeHtml(a[F_ANSWER.body] || '')}</div>
           ${a[F_ANSWER.refUrl] ? `<div class="answer-ref">📎 <a href="${escapeHtml(a[F_ANSWER.refUrl])}" target="_blank">${escapeHtml(a[F_ANSWER.refDesc]||'参考资料')}</a></div>` : ''}
+          <div style="margin-top:6px;">
+            <button class="like-btn-sm ${hasLikedAnswer(a.id)?'liked':''}" onclick="event.stopPropagation();likeAnswer('${a.id}')">👍 ${a[F_ANSWER.likes] || 0}</button>
+          </div>
         </div>
       `}).join('')}
     </div>
@@ -869,6 +876,9 @@ function openDetail(id) {
             </div>
             <div style="font-size:14px;line-height:1.6;white-space:pre-wrap;">${escapeHtml(a[F_ANSWER.body]||'')}</div>
             ${a[F_ANSWER.refUrl] ? `<div style="font-size:12px;color:var(--primary);margin-top:4px;">📎 <a href="${escapeHtml(a[F_ANSWER.refUrl])}" target="_blank">${escapeHtml(a[F_ANSWER.refDesc]||'参考资料')}</a></div>` : ''}
+            <div style="margin-top:6px;">
+              <button class="like-btn-sm ${hasLikedAnswer(a.id)?'liked':''}" onclick="event.stopPropagation();likeAnswer('${a.id}')">👍 ${a[F_ANSWER.likes] || 0}</button>
+            </div>
           </div>
         `}).join('')}
         <div class="reply-box">
@@ -940,6 +950,15 @@ function markLiked(id) {
   localStorage.setItem('liked_' + currentUser.name, JSON.stringify([...s]));
 }
 
+function getLikedAnswerSet() {
+  return new Set(JSON.parse(localStorage.getItem('aliked_' + currentUser.name) || '[]'));
+}
+function hasLikedAnswer(id) { return getLikedAnswerSet().has(id); }
+function markLikedAnswer(id) {
+  const s = getLikedAnswerSet(); s.add(id);
+  localStorage.setItem('aliked_' + currentUser.name, JSON.stringify([...s]));
+}
+
 async function likePost(id) {
   if (hasLiked(id)) return;
   if (_apiBusy) return;
@@ -958,6 +977,32 @@ async function likePost(id) {
     renderCurrentTab();
     syncScores();
   } catch(e) { console.error(e); }
+  _releaseLock();
+}
+
+// ===================== 回答点赞 =====================
+async function likeAnswer(answerId) {
+  if (hasLikedAnswer(answerId)) return;
+  if (_apiBusy) return;
+  _apiBusy = true;
+  markLikedAnswer(answerId);
+  // 在内存中找这条回答
+  let answer = null;
+  for (const list of Object.values(answersByPost)) {
+    answer = list.find(a => a.id === answerId);
+    if (answer) break;
+  }
+  if (!answer) { _releaseLock(); return; }
+  const newCount = (parseInt(answer[F_ANSWER.likes]) || 0) + 1;
+  try {
+    const updateFields = {};
+    updateFields[F_ANSWER.likes] = newCount;
+    await apiCall(`/bitable/v1/apps/${CONFIG.appToken}/tables/${CONFIG.answerTable}/records/${answerId}`, {
+      method: 'PUT', body: JSON.stringify({ fields: updateFields })
+    });
+    answer[F_ANSWER.likes] = newCount;
+    renderCurrentTab();
+  } catch(e) { console.error('回答点赞失败:', e); }
   _releaseLock();
 }
 
@@ -1106,11 +1151,12 @@ async function syncScores() {
 
   for (const s of scored) {
     const rid = existingMap[s.name];
-    // 只写基础数据字段；总积分/排名等公式字段不写（飞书公式字段只读）
+    // 写全部字段；总积分后续会改为飞书公式后前端停止写入
     const fields = {
       [F_SCORE.name]: s.name, [F_SCORE.group]: s.group,
       [F_SCORE.question]: s.question, [F_SCORE.answer]: s.answer,
       [F_SCORE.share]: s.share, [F_SCORE.liked]: s.liked,
+      [F_SCORE.total]: s.total, [F_SCORE.qRank]: s.qRank, [F_SCORE.aRank]: s.aRank,
     };
     try {
       if (rid) {
