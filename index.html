@@ -631,14 +631,6 @@ function renderPostForm(container, mode) {
         <button class="form-back" onclick="closePostForm()">←</button>
         <div class="form-title">${icon} ${title}</div>
       </div>
-      ${isQ ? '' : `
-      <div class="form-row">
-        <label>内容类型</label>
-        <select id="pf-content-type" style="background:var(--gray-100);" disabled>
-          <option value="经验分享" selected>💡 经验分享</option>
-        </select>
-      </div>
-      `}
       <div class="form-row">
         <label>分类标签（可多选）</label>
         <div class="tag-options" id="pf-tags">
