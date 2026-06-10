@@ -120,7 +120,7 @@ body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
 /* ========== 内容卡片列表 ========== */
 .card-list { display: flex; flex-direction: column; gap: 14px; }
 /* 瀑布流布局（首页精华帖 + 互动帖） */
-.card-waterfall { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+.card-waterfall { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; align-items: start; }
 .card-waterfall .content-card { /* grid item 无需额外处理 */ }
 .content-card { background: white; border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); border-left: 4px solid var(--primary); position: relative; }
 .content-card.pinned { border-left-color: var(--warning); background: #fffbeb; }
@@ -156,7 +156,7 @@ body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
 .answers-inline { margin-top: 14px; border-top: 1px solid var(--gray-100); padding-top: 12px; }
 .answers-inline .answer-item { padding: 10px 0; border-bottom: 1px solid var(--gray-50); }
 .answers-inline .answer-item:last-child { border-bottom: none; }
-.answers-inline .answer-meta { font-size: 12px; color: var(--gray-500); margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
+.answers-inline .answer-meta { font-size: 12px; color: var(--gray-500); margin-bottom: 4px; display: flex; align-items: center; gap: 6px; flex-wrap: nowrap; }
 .answers-inline .answer-body { font-size: 14px; line-height: 1.6; white-space: pre-wrap; }
 .answers-inline .answer-ref { font-size: 12px; color: var(--primary); margin-top: 4px; }
 .answers-inline .answer-ref a { color: var(--primary); text-decoration: none; }
@@ -866,13 +866,11 @@ function renderAnswersInline(answers) {
         <div class="answer-item">
           <div class="answer-meta">
             👤 ${a[F_ANSWER.author]} · ${a[F_ANSWER.group]} · 🕐 ${formatTime(a[F_ANSWER.time])}
-            ${isAnswerAuthor ? `<button class="op-btn op-delete" style="margin-left:auto;" onclick="event.stopPropagation();deleteAnswer('${a.id}','${postId}')">🗑 删除</button>` : ''}
+            <button class="like-btn-sm ${hasLikedAnswer(a.id)?'liked':''}" onclick="event.stopPropagation();likeAnswer('${a.id}')">👍 ${a[F_ANSWER.likes] || 0}</button>
+            ${isAnswerAuthor ? `<button class="op-btn op-delete" style="margin-left:auto;flex-shrink:0;" onclick="event.stopPropagation();deleteAnswer('${a.id}','${postId}')">🗑 删除</button>` : ''}
           </div>
           <div class="answer-body">${escapeHtml(a[F_ANSWER.body] || '')}</div>
           ${a[F_ANSWER.refUrl] ? `<div class="answer-ref">📎 <a href="${escapeHtml(a[F_ANSWER.refUrl])}" target="_blank">${escapeHtml(a[F_ANSWER.refDesc]||'参考资料')}</a></div>` : ''}
-          <div style="margin-top:6px;">
-            <button class="like-btn-sm ${hasLikedAnswer(a.id)?'liked':''}" onclick="event.stopPropagation();likeAnswer('${a.id}')">👍 ${a[F_ANSWER.likes] || 0}</button>
-          </div>
         </div>
       `}).join('')}
     </div>
@@ -902,15 +900,13 @@ function openDetail(id) {
           const isAnswerAuthor = a[F_ANSWER.author] === currentUser.name;
           return `
           <div style="padding:10px 0;border-bottom:1px solid var(--gray-100);">
-            <div style="font-size:12px;color:var(--gray-500);margin-bottom:4px;display:flex;align-items:center;gap:6px;">
+            <div style="font-size:12px;color:var(--gray-500);margin-bottom:4px;display:flex;align-items:center;gap:6px;flex-wrap:nowrap;">
               👤 ${a[F_ANSWER.author]} · ${a[F_ANSWER.group]} · 🕐 ${formatTime(a[F_ANSWER.time])}
-              ${isAnswerAuthor ? `<button class="op-btn op-delete" style="margin-left:auto;" onclick="event.stopPropagation();deleteAnswer('${a.id}','${id}')">🗑 删除</button>` : ''}
+              <button class="like-btn-sm ${hasLikedAnswer(a.id)?'liked':''}" onclick="event.stopPropagation();likeAnswer('${a.id}')">👍 ${a[F_ANSWER.likes] || 0}</button>
+              ${isAnswerAuthor ? `<button class="op-btn op-delete" style="margin-left:auto;flex-shrink:0;" onclick="event.stopPropagation();deleteAnswer('${a.id}','${id}')">🗑 删除</button>` : ''}
             </div>
             <div style="font-size:14px;line-height:1.6;white-space:pre-wrap;">${escapeHtml(a[F_ANSWER.body]||'')}</div>
             ${a[F_ANSWER.refUrl] ? `<div style="font-size:12px;color:var(--primary);margin-top:4px;">📎 <a href="${escapeHtml(a[F_ANSWER.refUrl])}" target="_blank">${escapeHtml(a[F_ANSWER.refDesc]||'参考资料')}</a></div>` : ''}
-            <div style="margin-top:6px;">
-              <button class="like-btn-sm ${hasLikedAnswer(a.id)?'liked':''}" onclick="event.stopPropagation();likeAnswer('${a.id}')">👍 ${a[F_ANSWER.likes] || 0}</button>
-            </div>
           </div>
         `}).join('')}
         <div class="reply-box">
