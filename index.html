@@ -1151,12 +1151,12 @@ async function syncScores() {
 
   for (const s of scored) {
     const rid = existingMap[s.name];
-    // 写全部字段；总积分后续会改为飞书公式后前端停止写入
+    // 写业务字段；总积分已是飞书公式字段（只读），不写入
     const fields = {
       [F_SCORE.name]: s.name, [F_SCORE.group]: s.group,
       [F_SCORE.question]: s.question, [F_SCORE.answer]: s.answer,
       [F_SCORE.share]: s.share, [F_SCORE.liked]: s.liked,
-      [F_SCORE.total]: s.total, [F_SCORE.qRank]: s.qRank, [F_SCORE.aRank]: s.aRank,
+      [F_SCORE.qRank]: s.qRank, [F_SCORE.aRank]: s.aRank,
     };
     try {
       if (rid) {
