@@ -249,19 +249,19 @@ body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
   <!-- 底部 Tab 导航 -->
   <div class="tab-bar" id="tab-bar">
     <div class="tab-item active" onclick="switchMainTab('home')" data-tab="home">
-      <div class="tab-icon">🏠</div>
+      <div class="tab-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg></div>
       <div class="tab-label">首页</div>
     </div>
     <div class="tab-item" onclick="switchMainTab('interact')" data-tab="interact">
-      <div class="tab-icon">💬</div>
+      <div class="tab-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-1.06 4.2A8.5 8.5 0 0 1 12.5 21a8.38 8.38 0 0 1-4.2-1.06L3 21l1.06-5.3A8.38 8.38 0 0 1 3 11.5a8.5 8.5 0 0 1 15.5-5.7A8.38 8.38 0 0 1 21 11.5z"/><circle cx="8.5" cy="11.5" r="1" fill="currentColor" stroke="none"/><circle cx="12" cy="11.5" r="1" fill="currentColor" stroke="none"/></svg></div>
       <div class="tab-label">互动</div>
     </div>
     <div class="tab-item" onclick="switchMainTab('post')" data-tab="post">
-      <div class="tab-icon">✍️</div>
+      <div class="tab-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg></div>
       <div class="tab-label">发帖</div>
     </div>
     <div class="tab-item" onclick="switchMainTab('mine')" data-tab="mine">
-      <div class="tab-icon">👤</div>
+      <div class="tab-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></svg></div>
       <div class="tab-label">我的</div>
       <div class="tab-badge" id="mine-badge" style="display:none;"></div>
     </div>
@@ -489,7 +489,7 @@ function renderHome(container) {
         </div>
       </div>
       <div class="af-card" onclick="window.open('https://www.bilibili.com/video/BV1DrVo6mEg8/', '_blank')">
-        <div class="af-card-img" style="background-image:url('https://i0.hdslb.com/bfs/archive/87278df7f2a5b5ef93b896a59c5ddf61433c5a74.jpg');"></div>
+        <div class="af-card-img" style="background-image:url('quality-cover.jpg');"></div>
         <div class="af-card-text">
           <div class="af-card-tag">💡 精选</div>
           <div class="af-card-title">优质内容推荐</div>
