@@ -120,8 +120,8 @@ body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
 /* ========== 内容卡片列表 ========== */
 .card-list { display: flex; flex-direction: column; gap: 14px; }
 /* 瀑布流布局（首页精华帖 + 互动帖） */
-.card-waterfall { display: block; column-count: 4; column-gap: 14px; }
-.card-waterfall .content-card { break-inside: avoid; margin-bottom: 14px; display: inline-block; width: 100%; }
+.card-waterfall { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+.card-waterfall .content-card { /* grid item 无需额外处理 */ }
 .content-card { background: white; border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); border-left: 4px solid var(--primary); position: relative; }
 .content-card.pinned { border-left-color: var(--warning); background: #fffbeb; }
 .content-card.featured { border-left-color: #f59e0b; }
@@ -207,7 +207,7 @@ body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
   .lb-card .label { font-size: 10px; }
   .lb-card .rank-item { font-size: 11px; }
   .lb-card .rank-name { max-width: 50px; }
-  .card-waterfall { column-count: 2; column-gap: 10px; }
+  .card-waterfall { display: flex; flex-direction: column; gap: 14px; }
 }
 </style>
 </head>
@@ -526,7 +526,7 @@ function renderHome(container) {
         <div class="af-card-text">
           <div class="af-card-tag">🔥 推荐</div>
           <div class="af-card-title">小编精选课程</div>
-          <div class="af-card-desc">精选优质AI课程与学习资源，助你系统提升</div>
+          <div class="af-card-desc">AI课程与宝藏博主推荐</div>
         </div>
       </div>
       <div class="af-card" onclick="window.open('https://www.bilibili.com/video/BV1DrVo6mEg8/', '_blank')">
@@ -847,7 +847,6 @@ function renderCard(p, showAnswersBtn = true) {
       <div class="card-actions">
         <button class="like-btn ${hasLiked(p.id)?'liked':''}" onclick="event.stopPropagation();likePost('${p.id}')">👍 ${p[F_MAIN.likes] || 0}</button>
         ${showAnswersBtn ? `<span class="answer-count" onclick="event.stopPropagation();openDetail('${p.id}')">💬 ${answerCount} 条回答</span>` : ''}
-        <button class="btn btn-sm btn-ghost" onclick="event.stopPropagation();openDetail('${p.id}')" style="margin-left:auto;">💬 回答</button>
         ${isAdmin ? `<button class="op-btn op-pin" onclick="event.stopPropagation();togglePin('${p.id}')">${p[F_MAIN.pinned]===true?'取消置顶':'📌 置顶'}</button>` : ''}
         ${isAdmin ? `<button class="op-btn op-hide" onclick="event.stopPropagation();toggleHide('${p.id}')">隐藏</button>` : ''}
         ${isAuthor ? `<button class="op-btn op-delete" onclick="event.stopPropagation();deletePost('${p.id}')">🗑 删除</button>` : ''}
