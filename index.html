@@ -68,17 +68,17 @@ body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
 
 /* ========== 精华帖区固定推荐卡片 ========== */
 .featured-pins { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-bottom: 18px; }
-.af-card { background: white; border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); cursor: pointer; transition: all 0.25s; display: flex; flex-direction: column; }
+.af-card { background: white; border-radius: var(--radius); padding: 12px; box-shadow: var(--shadow); cursor: pointer; transition: all 0.25s; display: flex; flex-direction: column; gap: 10px; }
 .af-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
-.af-card .af-card-img { width: 100%; height: 130px; background-size: cover; background-position: center; flex-shrink: 0; }
-.af-card .af-card-text { padding: 14px 16px; display: flex; flex-direction: column; gap: 4px; }
+.af-card .af-card-img { width: 100%; height: 130px; background-size: cover; background-position: center; flex-shrink: 0; border-radius: 8px; }
+.af-card .af-card-text { display: flex; flex-direction: column; gap: 4px; }
 .af-card .af-card-tag { font-size: 10px; font-weight: 700; color: var(--warning); letter-spacing: 0.5px; text-transform: uppercase; }
 .af-card .af-card-title { font-size: 15px; font-weight: 700; color: var(--gray-900); }
 .af-card .af-card-desc { font-size: 12px; color: var(--gray-500); line-height: 1.5; }
 @media (min-width: 701px) {
   .af-card { flex-direction: row; align-items: stretch; }
-  .af-card .af-card-img { width: 180px; height: auto; min-height: 130px; flex-shrink: 0; }
-  .af-card .af-card-text { flex: 1; justify-content: center; }
+  .af-card .af-card-img { width: 160px; height: auto; min-height: 120px; flex-shrink: 0; }
+  .af-card .af-card-text { flex: 1; justify-content: center; padding: 0 4px; }
   .af-card:nth-child(even) { flex-direction: row-reverse; }
   .af-card:nth-child(even) .af-card-text { text-align: right; }
 }
@@ -525,7 +525,7 @@ function renderHome(container) {
         <div class="af-card-img" style="background-image:url('course-banner.png');"></div>
         <div class="af-card-text">
           <div class="af-card-tag">🔥 推荐</div>
-          <div class="af-card-title">课程推荐</div>
+          <div class="af-card-title">小编精选课程</div>
           <div class="af-card-desc">精选优质AI课程与学习资源，助你系统提升</div>
         </div>
       </div>
