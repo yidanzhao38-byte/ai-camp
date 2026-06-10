@@ -38,14 +38,18 @@ body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
 .user-bar .btn-switch { font-size: 12px; padding: 4px 10px; background: transparent; color: white; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; cursor: pointer; }
 
 /* ========== 底部 Tab 导航 ========== */
-.tab-bar { position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid var(--gray-200); display: flex; z-index: 200; padding-bottom: var(--safe-bottom); box-shadow: 0 -2px 8px rgba(0,0,0,0.05); }
-.tab-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 6px 0; cursor: pointer; color: var(--gray-500); transition: 0.2s; position: relative; height: var(--tab-height); }
+.tab-bar { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(255,255,255,0.92); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: 1px solid rgba(0,0,0,0.06); display: flex; z-index: 200; padding-bottom: var(--safe-bottom); border-radius: 16px 16px 0 0; box-shadow: 0 -4px 20px rgba(0,0,0,0.06); }
+.tab-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 5px 0; cursor: pointer; color: var(--gray-500); transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); position: relative; height: var(--tab-height); }
 .tab-item:hover { color: var(--gray-700); }
 .tab-item.active { color: var(--primary); }
-.tab-item .tab-icon { font-size: 22px; line-height: 1; }
+.tab-item .tab-icon { font-size: 22px; line-height: 1; transition: transform 0.25s; }
+.tab-item.active .tab-icon { transform: scale(1.15); }
 .tab-item .tab-label { font-size: 11px; margin-top: 2px; font-weight: 500; }
-.tab-item .tab-badge { position: absolute; top: 4px; right: 50%; margin-right: -14px; width: 8px; height: 8px; border-radius: 50%; background: var(--danger); }
-.tab-item .tab-badge.count { width: auto; height: 18px; min-width: 18px; border-radius: 9px; background: var(--danger); color: white; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; padding: 0 5px; margin-right: -22px; }
+.tab-item::after { content: ''; position: absolute; top: 4px; left: 50%; transform: translateX(-50%) scaleX(0); width: 20px; height: 3px; border-radius: 3px; background: var(--primary); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+.tab-item.active::after { transform: translateX(-50%) scaleX(1); }
+.tab-item .tab-badge { position: absolute; top: 2px; right: 50%; margin-right: -18px; width: 8px; height: 8px; border-radius: 50%; background: var(--danger); animation: pulse-dot 1.5s infinite; }
+.tab-item .tab-badge.count { width: auto; height: 18px; min-width: 18px; border-radius: 9px; background: var(--danger); color: white; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; padding: 0 5px; margin-right: -24px; }
+@keyframes pulse-dot { 0%,100% { opacity:1; } 50% { opacity:0.5; } }
 
 /* ========== 内容区域 ========== */
 .container { max-width: 1100px; margin: 0 auto; padding: 16px 14px; }
@@ -64,7 +68,22 @@ body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
 .lb-card .rank-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .lb-card .rank-score { font-weight: 700; color: var(--primary); }
 
-/* ========== 精华帖区 ========== */
+/* ========== 精华帖区固定推荐卡片 ========== */
+.featured-pins { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-bottom: 18px; }
+.af-card { background: white; border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); cursor: pointer; transition: all 0.25s; display: flex; flex-direction: column; }
+.af-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+.af-card .af-card-img { width: 100%; height: 130px; background-size: cover; background-position: center; flex-shrink: 0; }
+.af-card .af-card-text { padding: 14px 16px; display: flex; flex-direction: column; gap: 4px; }
+.af-card .af-card-tag { font-size: 10px; font-weight: 700; color: var(--warning); letter-spacing: 0.5px; text-transform: uppercase; }
+.af-card .af-card-title { font-size: 15px; font-weight: 700; color: var(--gray-900); }
+.af-card .af-card-desc { font-size: 12px; color: var(--gray-500); line-height: 1.5; }
+@media (min-width: 701px) {
+  .af-card { flex-direction: row; align-items: stretch; }
+  .af-card .af-card-img { width: 180px; height: auto; min-height: 130px; flex-shrink: 0; }
+  .af-card .af-card-text { flex: 1; justify-content: center; }
+  .af-card:nth-child(even) { flex-direction: row-reverse; }
+  .af-card:nth-child(even) .af-card-text { text-align: right; }
+}
 .section-title { font-size: 15px; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
 .section-title::before { content: ''; width: 4px; height: 16px; background: var(--warning); border-radius: 2px; }
 
@@ -201,7 +220,6 @@ body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
       <option value="第五组">第五组 · 人才档案与职业发展Agent</option>
       <option value="第六组">第六组 · 项目团队诊断中台</option>
       <option value="第七组">第七组 · 营销一线团队评价Agent</option>
-      <option value="运营组">运营组</option>
     </select>
     <button onclick="saveIdentity()">进入看板 →</button>
   </div>
@@ -460,6 +478,25 @@ function renderHome(container) {
         <div id="rank-group"></div>
       </div>
     </div>
+    <!-- 固定推荐卡片 -->
+    <div class="featured-pins">
+      <div class="af-card" onclick="window.open('https://www.bilibili.com/v/knowledge/', '_blank')">
+        <div class="af-card-img" style="background:linear-gradient(135deg,#667eea,#764ba2);display:flex;align-items:center;justify-content:center;font-size:48px;">📚</div>
+        <div class="af-card-text">
+          <div class="af-card-tag">🔥 推荐</div>
+          <div class="af-card-title">课程推荐</div>
+          <div class="af-card-desc">精选优质AI课程与学习资源，助你系统提升</div>
+        </div>
+      </div>
+      <div class="af-card" onclick="window.open('https://km.woa.com/', '_blank')">
+        <div class="af-card-img" style="background:linear-gradient(135deg,#f093fb,#f5576c);display:flex;align-items:center;justify-content:center;font-size:48px;">🌟</div>
+        <div class="af-card-text">
+          <div class="af-card-tag">💡 精选</div>
+          <div class="af-card-title">优质内容推荐</div>
+          <div class="af-card-desc">精选社区优质分享与实战经验</div>
+        </div>
+      </div>
+    </div>
     <!-- 精华帖区 -->
     <div class="section-title">⭐ 精华帖</div>
     <div class="card-list" id="featured-list">
@@ -659,7 +696,8 @@ async function submitPostForm(mode) {
     else finalBody += `- ${refUrl.trim()}\n`;
   }
 
-  const now = new Date().toISOString().replace('T', ' ').slice(0, 16);
+  const d = new Date();
+  const now = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
   const fields = {};
   fields[F_MAIN.contentType] = mode;
   fields[F_MAIN.author] = currentUser.name;
@@ -860,7 +898,8 @@ async function submitAnswer(postId) {
   const body = document.getElementById('reply-input').value.trim();
   if (!body) { alert('请填写回答内容'); _releaseLock(); if (btn) { btn.disabled = false; btn.textContent = '提交回答'; } return; }
 
-  const now = new Date().toISOString();
+  const d = new Date();
+  const now = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}T${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`;
   const fields = {};
   fields[F_ANSWER.linkId] = postId;
   fields[F_ANSWER.author] = currentUser.name;
@@ -1096,7 +1135,14 @@ async function syncScores() {
 // ===================== 工具 =====================
 function formatTime(iso) {
   if (!iso) return '';
-  const d = new Date(iso);
+  // 兼容多种输入格式：UTC ISO (带Z)、本地时间、飞书时间戳
+  let d;
+  if (typeof iso === 'number' || /^\d+$/.test(iso)) {
+    d = new Date(parseInt(iso));
+  } else {
+    d = new Date(iso);
+  }
+  if (isNaN(d.getTime())) return iso;
   return `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
 }
 function escapeHtml(str) {
