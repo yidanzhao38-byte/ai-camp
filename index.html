@@ -30,12 +30,12 @@
 body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: var(--gray-50); color: var(--gray-900); padding-bottom: calc(var(--tab-height) + var(--safe-bottom) + 12px); }
 
 /* ========== 顶部 Header ========== */
-.header { background: linear-gradient(135deg, var(--primary), #7c3aed); color: white; padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
-.header h1 { font-size: 18px; font-weight: 700; }
-.header .subtitle { font-size: 12px; opacity: 0.85; margin-top: 2px; }
-.user-bar { display: flex; align-items: center; gap: 10px; font-size: 14px; }
-.user-bar .avatar { width: 34px; height: 34px; border-radius: 50%; background: rgba(255,255,255,0.25); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; }
-.user-bar .btn-switch { font-size: 12px; padding: 4px 10px; background: transparent; color: white; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; cursor: pointer; }
+.header { background: linear-gradient(135deg, var(--primary), #7c3aed); color: white; padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+.header h1 { font-size: 15px; font-weight: 700; }
+.header .subtitle { font-size: 10px; opacity: 0.85; margin-top: 1px; }
+.user-bar { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+.user-bar .avatar { width: 28px; height: 28px; border-radius: 50%; background: rgba(255,255,255,0.25); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; }
+.user-bar .btn-switch { font-size: 11px; padding: 3px 8px; background: transparent; color: white; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; cursor: pointer; }
 
 /* ========== 底部 Tab 导航 ========== */
 .tab-bar { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(255,255,255,0.92); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: 1px solid rgba(0,0,0,0.06); display: flex; z-index: 200; padding-bottom: var(--safe-bottom); border-radius: 16px 16px 0 0; box-shadow: 0 -4px 20px rgba(0,0,0,0.06); }
@@ -45,8 +45,6 @@ body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
 .tab-item .tab-icon { font-size: 22px; line-height: 1; transition: transform 0.25s; }
 .tab-item.active .tab-icon { transform: scale(1.15); }
 .tab-item .tab-label { font-size: 11px; margin-top: 2px; font-weight: 500; }
-.tab-item::after { content: ''; position: absolute; top: 4px; left: 50%; transform: translateX(-50%) scaleX(0); width: 20px; height: 3px; border-radius: 3px; background: var(--primary); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-.tab-item.active::after { transform: translateX(-50%) scaleX(1); }
 .tab-item .tab-badge { position: absolute; top: 2px; right: 50%; margin-right: -18px; width: 8px; height: 8px; border-radius: 50%; background: var(--danger); animation: pulse-dot 1.5s infinite; }
 .tab-item .tab-badge.count { width: auto; height: 18px; min-width: 18px; border-radius: 9px; background: var(--danger); color: white; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; padding: 0 5px; margin-right: -24px; }
 @keyframes pulse-dot { 0%,100% { opacity:1; } 50% { opacity:0.5; } }
@@ -57,11 +55,11 @@ body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
 .tab-view.active { display: block; }
 
 /* ========== 排行榜 ========== */
-.leaderboard { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
-.lb-card { background: white; border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow); }
-.lb-card .label { font-size: 12px; color: var(--gray-500); margin-bottom: 8px; font-weight: 600; }
-.lb-card .rank-item { display: flex; align-items: center; gap: 8px; padding: 5px 0; font-size: 13px; }
-.lb-card .rank-num { width: 20px; height: 20px; border-radius: 50%; background: var(--gray-100); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+.leaderboard { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 16px; }
+.lb-card { background: white; border-radius: var(--radius); padding: 10px 12px; box-shadow: var(--shadow); }
+.lb-card .label { font-size: 11px; color: var(--gray-500); margin-bottom: 6px; font-weight: 600; }
+.lb-card .rank-item { display: flex; align-items: center; gap: 6px; padding: 3px 0; font-size: 12px; }
+.lb-card .rank-num { width: 18px; height: 18px; border-radius: 50%; background: var(--gray-100); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; flex-shrink: 0; }
 .lb-card .rank-num.gold { background: #fbbf24; color: white; }
 .lb-card .rank-num.silver { background: #9ca3af; color: white; }
 .lb-card .rank-num.bronze { background: #d97706; color: white; }
@@ -193,9 +191,15 @@ body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
 
 /* ========== 响应式 ========== */
 @media (max-width: 700px) {
-  .leaderboard { grid-template-columns: 1fr 1fr; }
-  .header { flex-direction: column; gap: 10px; text-align: center; }
   .post-entry-cards { grid-template-columns: 1fr; }
+  .header h1 { font-size: 13px; }
+  .header .subtitle { display: none; }
+  .user-bar { font-size: 11px; gap: 4px; }
+  .user-bar .avatar { width: 24px; height: 24px; font-size: 11px; }
+  .container { padding: 10px 8px; }
+  .lb-card .label { font-size: 10px; }
+  .lb-card .rank-item { font-size: 11px; }
+  .lb-card .rank-name { max-width: 50px; }
 }
 </style>
 </head>
@@ -493,7 +497,7 @@ function renderHome(container) {
         <div class="af-card-text">
           <div class="af-card-tag">💡 精选</div>
           <div class="af-card-title">优质内容推荐</div>
-          <div class="af-card-desc">精选社区优质分享与实战经验</div>
+          <div class="af-card-desc">精选网络AI优质内容与观点</div>
         </div>
       </div>
     </div>
@@ -648,15 +652,16 @@ function renderPostForm(container, mode) {
       </div>
       <div class="form-row">
         <label>正文</label>
-        <textarea id="pf-body" rows="8" data-template="${escapeHtml(tpl.body)}" placeholder="${escapeHtml(tpl.body)}"
-          onfocus="clearTemplateText(this)" oninput="clearTemplateText(this)">${tpl.body}</textarea>
-        <div class="template-hint">💡 上方为参考模板，开始输入后自动消失</div>
+        <textarea id="pf-body" rows="8">${tpl.body}</textarea>
       </div>
       ${!isQ ? `
       <div class="form-row">
         <label>📎 参考链接（可选）</label>
-        <input id="pf-ref-desc" type="text" placeholder="链接描述，如：腾讯文档 / 截图说明">
-        <input id="pf-ref-url" type="text" placeholder="粘贴链接地址" style="margin-top:6px;">
+        <input id="pf-ref-url" type="text" placeholder="粘贴链接地址">
+      </div>
+      <div class="form-row">
+        <label>📦 上传附件（可选，支持 zip）</label>
+        <input type="file" id="pf-attachment" accept=".zip" style="padding:8px;">
       </div>
       ` : ''}
       <button class="btn btn-primary btn-block" onclick="submitPostForm('${mode}')">🚀 发布</button>
@@ -668,10 +673,6 @@ function clearTemplate(input) {
   const tpl = input.dataset.template;
   if (input.value === tpl) input.value = '';
 }
-function clearTemplateText(textarea) {
-  const tpl = textarea.dataset.template;
-  if (textarea.value.trim() === tpl) textarea.value = '';
-}
 
 async function submitPostForm(mode) {
   if (!_acquireLock('正在提交中，请稍候...')) return;
@@ -681,19 +682,20 @@ async function submitPostForm(mode) {
   const body = (document.getElementById('pf-body') || {}).value || '';
   const tagsEl = document.querySelectorAll('#pf-tags .tag-btn.selected');
   const tags = [...tagsEl].map(e => e.dataset.tag);
-  const refDesc = (document.getElementById('pf-ref-desc') || {}).value || '';
   const refUrl = (document.getElementById('pf-ref-url') || {}).value || '';
+  const attachmentFile = (document.getElementById('pf-attachment') || {}).files?.[0] || null;
 
   if (!title.trim()) { alert('请填写标题'); _releaseLock(); if (btn) { btn.disabled = false; btn.textContent = '发布'; } return; }
   if (title.trim() === TEMPLATES[mode].title) { alert('请修改标题为你自己的内容'); _releaseLock(); if (btn) { btn.disabled = false; btn.textContent = '发布'; } return; }
-  if (!body.trim() || body.trim() === TEMPLATES[mode].body) { alert('请填写正文内容'); _releaseLock(); if (btn) { btn.disabled = false; btn.textContent = '发布'; } return; }
+  if (!body.trim()) { alert('请填写正文内容'); _releaseLock(); if (btn) { btn.disabled = false; btn.textContent = '🚀 发布'; } return; }
   if (tags.length === 0) { alert('请至少选择一个分类标签'); _releaseLock(); if (btn) { btn.disabled = false; btn.textContent = '发布'; } return; }
 
   let finalBody = body.trim();
   if (refUrl.trim()) {
-    finalBody += '\n\n### 📎 参考链接\n';
-    if (refDesc.trim()) finalBody += `- ${refDesc.trim()}：${refUrl.trim()}\n`;
-    else finalBody += `- ${refUrl.trim()}\n`;
+    finalBody += '\n\n📎 参考链接\n' + refUrl.trim();
+  }
+  if (attachmentFile) {
+    finalBody += '\n\n📦 附件：' + attachmentFile.name + '（' + (attachmentFile.size > 1024*1024 ? (attachmentFile.size/(1024*1024)).toFixed(1)+'MB' : (attachmentFile.size/1024).toFixed(0)+'KB') + '）';
   }
 
   const d = new Date();
