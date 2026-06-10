@@ -308,7 +308,7 @@ const F_ANSWER = {
 
 const F_SCORE = {
   name: '姓名', group: '所属小组', question: '提问次数',
-  answer: '回答次数', share: '经验分享次数', liked: '被点赞次数',
+  answer: '回答次数', share: '分享次数', liked: '被点赞次数',
   total: '总积分', qRank: '提问榜排名', aRank: '回答榜排名'
 };
 
@@ -1106,11 +1106,11 @@ async function syncScores() {
 
   for (const s of scored) {
     const rid = existingMap[s.name];
+    // 只写基础数据字段；总积分/排名等公式字段不写（飞书公式字段只读）
     const fields = {
       [F_SCORE.name]: s.name, [F_SCORE.group]: s.group,
       [F_SCORE.question]: s.question, [F_SCORE.answer]: s.answer,
       [F_SCORE.share]: s.share, [F_SCORE.liked]: s.liked,
-      [F_SCORE.total]: s.total, [F_SCORE.qRank]: s.qRank, [F_SCORE.aRank]: s.aRank,
     };
     try {
       if (rid) {
@@ -1122,7 +1122,7 @@ async function syncScores() {
           method: 'POST', body: JSON.stringify({ fields })
         });
       }
-    } catch(e) { console.warn('积分写入失败:', s.name, e); }
+    } catch(e) { console.error('积分写入失败:', s.name, e.message || e); }
   }
 }
 
