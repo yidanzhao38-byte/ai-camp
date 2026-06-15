@@ -777,6 +777,7 @@ async function submitPostForm(mode) {
   fields[F_MAIN.hidden] = false;
 
   try {
+    if (btn) btn.textContent = '⏳ 提交中…';
     const resp = await apiCall(`/bitable/v1/apps/${CONFIG.appToken}/tables/${CONFIG.mainTable}/records`, {
       method: 'POST', body: JSON.stringify({ fields })
     });
@@ -788,7 +789,7 @@ async function submitPostForm(mode) {
       alert('发布失败：' + (resp.msg || resp.error || '未知错误'));
     }
   } catch(e) {
-    alert('发布失败：' + (e.message || '网络错误，请重试'));
+    alert('发布失败，请检查网络后重试。\n（' + (e.message || '网络错误') + '）');
   } finally {
     _releaseLock();
     if (btn) { btn.disabled = false; btn.textContent = '🚀 发布'; }
@@ -974,6 +975,7 @@ async function submitAnswer(postId) {
   fields[F_ANSWER.likes] = 0;
 
   try {
+    if (btn) btn.textContent = '⏳ 提交中…';
     const resp = await apiCall(`/bitable/v1/apps/${CONFIG.appToken}/tables/${CONFIG.answerTable}/records`, {
       method: 'POST', body: JSON.stringify({ fields })
     });
@@ -994,7 +996,7 @@ async function submitAnswer(postId) {
       alert('提交失败：' + (resp.msg || '未知错误'));
     }
   } catch(e) {
-    alert('网络错误，请重试');
+    alert('网络错误，请重试。\n（' + (e.message || '未知错误') + '）');
   } finally {
     _releaseLock();
     if (btn) { btn.disabled = false; btn.textContent = '提交回答'; }
@@ -1252,17 +1254,34 @@ function escapeHtml(str) {
 }
 
 // ===================== API =====================
-async function apiCall(endpoint, options = {}) {
+async function apiCall(endpoint, options = {}, _retry = true) {
   const url = API_BASE_URL + endpoint;
   console.log('[API] →', options.method || 'GET', url);
-  const resp = await fetch(url, {
-    ...options,
-    headers: { 'Content-Type': 'application/json', ...options.headers }
-  });
+  let resp;
+  try {
+    resp = await fetch(url, {
+      ...options,
+      headers: { 'Content-Type': 'application/json', ...options.headers }
+    });
+  } catch(networkErr) {
+    // 网络层异常（离线、DNS 失败等）——直接重试一次
+    if (_retry) {
+      console.warn('[API] 网络异常，1秒后重试…', networkErr.message);
+      await new Promise(r => setTimeout(r, 1000));
+      return apiCall(endpoint, options, false);
+    }
+    throw networkErr;
+  }
   const text = await resp.text();
   let data;
   try { data = JSON.parse(text); } catch(e) { data = { raw: text }; }
   console.log('[API] ← status', resp.status);
+  // 遇到 5xx（云函数冷启动 / 超时）自动重试一次
+  if (!resp.ok && resp.status >= 500 && _retry) {
+    console.warn('[API] 服务端错误 ' + resp.status + '，1秒后自动重试…');
+    await new Promise(r => setTimeout(r, 1000));
+    return apiCall(endpoint, options, false);
+  }
   if (!resp.ok) throw new Error('HTTP ' + resp.status + ': ' + (data.msg || data.error || text));
   return data;
 }
